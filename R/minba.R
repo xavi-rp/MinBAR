@@ -14,8 +14,8 @@
 #'
 #' @author Xavier Rotllan-Puig
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
-#' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name
-#' @param climdat An .RData file containing a RasterStack with the independent variables
+#' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
+#' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
 #' @param num_bands Number of bandwidths
 #' @param n_times Number of models
 #' @param BI_part 
@@ -31,11 +31,11 @@
 # 
 # 
 
-minba <- function(occ = NULL, climdat = NULL, 
+minba <- function(occ = NULL, varbles = NULL,
+                  prj = NULL,
                   num_bands = 10, n_times = 3,
-                  BI_part = NULL,BI_tot = NULL,
-                  SD_BI_part = NULL, SD_BI_tot = NULL
-                  ){
+                  BI_part = NULL, BI_tot = NULL,
+                  SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
   #setwd("/Users/xavi/Google Drive/MinBAR/data")
   wd <- getwd()
@@ -47,39 +47,21 @@ minba <- function(occ = NULL, climdat = NULL,
   presences <- read.csv(occ, header = TRUE)
   head(presences)
   presences$sp2 <- tolower(paste(substr(presences$species, 1, 3), substr(sub(".* ", "", presences$species), 1, 3), sep = "_"))
-  colnames(presences)[1:2] <- c("lat", "lon") 
+  colnames(presences)[1:2] <- c("lon", "lat") 
   presences <- presences[, c(2,1,3,4)]
 
   #### Climatic Data ####
-  #climdat <- "wc05.RData"
-  load(paste0(wd, "/wc0.5/", climdat), verbose = TRUE)
-  bioclim
+  #varbles <- paste0(wd, "/wc0.5") 
+  rstrs <- list.files(varbles, pattern = c(".bil$"), full.names = T)
+  rstrs <- c(rstrs, list.files(varbles, pattern = c(".tif$"), full.names = T))
   
-  
-  #Downloading data from worldclim.org
-  if(tolower(climdat) != "no"){
-    if (data_rep == "gbif"){
-      bioclim <- getData('worldclim', var='bio', res = resol, path = paste0(wd))
-      save(bioclim, file = "wc5/wc5.RData")
-    }
-    if (data_rep == "bioatles"){
-      bioclim_16 <- getData('worldclim', var='bio', res = resol, lon=3, lat=39,
-                            path = paste0(wd))  # importing tile 16
-      bioclim <- bioclim_16
-      save(bioclim, file = "wc0.5/wc05.RData")
-      rm(bioclim_16) ; gc()
-    }
+  vrbles <- stack()
+  for(rst in 1:length(rstrs)){
+    temp <- raster(rstrs[rst])
+    vrbles <- stack(vrbles, temp)
   }
-  if (data_rep == "gbif")  load(paste0(wd, "/wc5/wc5.RData"), verbose = FALSE)
-  if (data_rep == "bioatles")  
+  if (!is.null(prj)) crs(vrbles) <- CRS(paste0("+init=EPSG:", prj))
   
-  
-  #Making a mask (if necessary)
-  mskng <- "no"
-  if(tolower(mskng) != "no"){
-    msk <- bioclim$bio12
-    msk <- reclassify(msk, c(0, msk@data@max, 1)) # reclassify to 1
-  }
   
   #### Modelling per each species ####
   specs <- unique(presences$sp2)
@@ -90,9 +72,10 @@ minba <- function(occ = NULL, climdat = NULL,
   for(sps in specs){
     pres <- presences[presences$sp2 %in% sps, ] # selecting for species
     specs_long <- as.character(unique(pres$species)) # complete name of the species
-    pres <- pres[, c(1,2,4)]
+    pres <- pres[, c(2, 1, 4)]
     coordinates(pres) <- c("lon", "lat")  # setting spatial coordinates
-    pres@proj4string <- CRS("+init=EPSG:4326")
+    # prj <- "4326"
+    if (!is.null(prj)) pres@proj4string <- CRS(paste0("+init=EPSG:", prj))
     #plot(pres)
     
     #### Calculating the centre of the population, its most distant point and "bands" ####
@@ -124,7 +107,7 @@ minba <- function(occ = NULL, climdat = NULL,
     ext1[1, 2] <- pres@bbox[1, 2] + incr1[1]
     ext1[2, 1] <- pres@bbox[2, 1] - incr1[2]
     ext1[2, 2] <- pres@bbox[2, 2] + incr1[2]
-    varbles1 <- stack(crop(bioclim, ext1))
+    varbles1 <- stack(crop(vrbles, ext1))
     
     # number of background points (see Guevara et al, 2017)
     num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100 
@@ -148,7 +131,7 @@ minba <- function(occ = NULL, climdat = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles <- stack(crop(bioclim, ext))
+      varbles <- stack(crop(vrbles, ext))
       #dev.off()
       #plot(varbles$bio2_16)
       #plot(pres, add = TRUE)
@@ -357,76 +340,4 @@ minba <- function(occ = NULL, climdat = NULL,
     
   } # end of loop for sps
   
-  #
-  
-  #### Frequences of Best bandwidth #### 
-  
-  best2_bnd_2exp <- read.csv(paste0(dir2save, "/rankingBestBandwidth.csv"), header = TRUE)
-  frec_best_NoTime <- as.data.frame(table(best2_bnd_2exp$Best_Bandwidth_NoTime))
-  frec_best_WithTime <- as.data.frame(table(best2_bnd_2exp$Best_Bandwidth_WithTime))
-  
-  frec_best <- as.data.frame(matrix(seq(1:num_bands), nrow = num_bands, ncol = 1))
-  frec_best <- merge(frec_best, frec_best_NoTime, by.x = "V1", by.y = "Var1", all = TRUE)
-  frec_best <- merge(frec_best, frec_best_WithTime, by.x = "V1", by.y = "Var1", all = TRUE)
-  frec_best[is.na(frec_best)] <- 0 
-  names(frec_best) <- c("BandwidthNum", "Frec_Best_NoTime", "Frec_Best_WithTime")
-  
-  perc1 <- round((prop.table(frec_best$Frec_Best_NoTime)*100), 0)
-  perc2 <- round((prop.table(frec_best$Frec_Best_WithTime)*100), 0)
-  perc <- paste0(c(perc1, perc2), "%")
-  maxY <- max(frec_best_NoTime$Freq, frec_best_WithTime$Freq) + 1
-  posX <- c(1:num_bands, (num_bands + 2):((2 * (num_bands)) + 1)) - 0.3
-  posY <- (maxY / 10 * 0.2) + c(frec_best$Frec_Best_NoTime, frec_best$Frec_Best_WithTime)
-  if (maxY <= 5) legY <- -0.4 else legY <- -1.5
-  
-  palte <- colorRampPalette(colors = c("darkgreen", "green", "yellow", "orange", "red", "darkred"))(num_bands)
-  
-  pdf(paste0(dir2save, "/BestBandwidths.pdf"))
-  par(xpd = TRUE, mar = par()$mar + c(3,1,0,0))
-  bpl <- barplot(as.matrix(frec_best[,c(2:3)]),
-                 main = "Best Bandwidth With and Without Execution Time", ylab = paste0("Frequencies (n = ", nrow(best2_bnd_2exp), ")"), 
-                 ylim = c(0, maxY),
-                 beside = TRUE, space = c(0, 1),
-                 col = palte,
-                 #names.arg = c(1:10, 1:10),
-                 names.arg = c("Without Execution Time", "With Execution Time"),
-                 cex.names = 1, las = 1)
-  lg <- legend((num_bands/2), legY,
-               legend = frec_best$BandwidthNum, 
-               fill = palte,
-               title = "Bandwidth Number", cex = 1, ncol = (num_bands/2))
-  txt <- text(x = posX, y = posY, perc, cex = 0.8, pos = 4, srt = 45)
-  
-  dev.off()
-  # 
-  
-  
-  #### Plot with all bandwidth plots ####
-  
-  
-  
-  #### BI by groups ####
-  
-  dt2exp_mean_all <- as.data.frame(matrix(ncol = 0, nrow = 0))
-  
-  for (sps in specs){
-    dt2exp_mean <- read.csv(paste0(dir2save, "/results_", sps, "/info_mod_means_", sps, ".csv"), header = TRUE)[, 1:4]
-    dt2exp_mean_all <- rbind(dt2exp_mean_all, dt2exp_mean)
-  }
-  
-  BI_SD_bySpecies <- as.data.frame(dt2exp_mean_all %>% group_by(Species) %>% summarise(Mean_BI_part = mean(BoyceIndex_part),
-                                                                                       SD_BI_part = sd(BoyceIndex_part),
-                                                                                       Mean_BI_tot = mean(BoyceIndex_tot),
-                                                                                       SD_BI_tot = sd(BoyceIndex_tot)))
-  BI_SD_bySpecies
-  range(BI_SD_bySpecies$Mean_part)
-  range(BI_SD_bySpecies$SD_part)
-  range(BI_SD_bySpecies$Mean_tot)
-  range(BI_SD_bySpecies$SD_tot)
-  
-  
-  
-  
-  
-}
-  
+} 
