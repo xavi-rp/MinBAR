@@ -5,7 +5,7 @@ Version: 0.0.0.9000
 Authors@R: person("Xavier", "Rotllan-Puig", email = "xavi.rotllan.puig@gmail.com", role = c("aut", "cre"))
 Description: MinBAR aims at (1) defining what is the minimum background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it
 Depends: R (>= 3.3.3)
-Imports: raster, rgdal, sp, dismo (>= 1.1-4), ecospat, geosphere, lattice, latticeExtra
+Imports: raster, rgdal, sp, dismo (>= 1.1-4), ecospat (>= 2.2.0), geosphere (>= 1.5-5), lattice, latticeExtra
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 License: GPL-3
