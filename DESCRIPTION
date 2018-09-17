@@ -1,3 +1,4 @@
+Type: Package
 Package: MinBAR
 Title: It defines what is the minimum background area necessary to fit reliable partial SDMs
 Version: 0.0.0.9000
