@@ -16,13 +16,13 @@
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
 #' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
 #' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
-#' @param num_bands Number of bandwidths
-#' @param n_times Number of models
+#' @param num_bands Number of buffers
+#' @param n_times Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
 #' @param BI_tot Maximum Boyce Index Total to stop the process if reached
-#' @param SD_BI_part Minimum SD of the Boyce Index Partial to stop the process if reached (minimum 4 bandwidths required)
-#' @param SD_BI_tot Minimum SD of the Boyce Index Total to stop the process if reached (minimum 4 bandwidths required)
-#' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each bandwidth
+#' @param SD_BI_part Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)
+#' @param SD_BI_tot Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)
+#' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 #' @name minba()
 #'
 # Created on: Summer 2018
@@ -63,7 +63,7 @@ minba <- function(occ = NULL, varbles = NULL,
   #### Modelling per each species ####
   specs <- unique(presences$sp2)
 
-  best2_bnd_2exp <- as.data.frame(matrix(ncol = 0, nrow = 0)) # a table to export rankings of best and 2nd best bandwidth
+  best2_bnd_2exp <- as.data.frame(matrix(ncol = 0, nrow = 0)) # a table to export rankings of best and 2nd best buffer
 
   for(sps in specs){
     pres <- presences[presences$sp2 %in% sps, ] # selecting for species
@@ -90,7 +90,7 @@ minba <- function(occ = NULL, varbles = NULL,
     bndwidth <- c(bndwidth[2:(length(bndwidth)-1)], furthest) # Not defined by distance, but by % of presences equally distributed
     # This is particularly useful for very discontinuous distributions (e.g. introduced or invasive species),
     # while not affecting more aggregated populations
-    # by equally distant bandwidths
+    # by equally distant buffers
     #bndwidth <- as.vector(seq(0, furthest, furthest/num_bands))[-1]
 
     #### Croping variables to pres extent  + 5%
@@ -106,15 +106,15 @@ minba <- function(occ = NULL, varbles = NULL,
     num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100
 
 
-    #### Making models for each bandwidth ####
+    #### Making models for each buffer ####
     #tables with info to be exported
     dt2exp <- as.data.frame(matrix(ncol = 12, nrow = 0))
     selfinfo2exp <- as.data.frame(matrix(ncol = 9, nrow = 0))
     dt2exp_mean <- as.data.frame(matrix(ncol = 7, nrow = 0))
 
-    for (bdw in 1:length(bndwidth)) { # for each bandwidth
+    for (bdw in 1:length(bndwidth)) { # for each buffer
       x <- 1
-      # set of presences for modeling within the bandwidth
+      # set of presences for modeling within the buffer
       pres4model <- pres[pres$dist2centr <= bndwidth[bdw], ]
 
       # croping variables to pres4model extent  + 5%  <-- to fit the model
@@ -133,7 +133,7 @@ minba <- function(occ = NULL, varbles = NULL,
       #  pres4model <- pres4model[pres4model1,]
       #}
 
-      # sampling presences for calibrating and testing (70-30%) within the bandwidth
+      # sampling presences for calibrating and testing (70-30%) within the buffer
       folds <- sample(1:nrow(pres4model), nrow(pres4model)*0.7)
       samp <- as.numeric(unlist(folds))
       pres4cali <- pres4model[samp, 1]
@@ -148,7 +148,7 @@ minba <- function(occ = NULL, varbles = NULL,
 
       repeat{   # maybe it can be done directly with maxent; if so, we would also have the "average-model"
         t1 <- Sys.time()
-        cat("\r","modelling for",specs_long,"- bandwidth #",bdw,"_",x)
+        cat("\r","modelling for",specs_long,"- buffer #",bdw,"_",x)
 
         # Running maxent from dismo
         if(!file.exists(paste0(dir2save,"/results_", sps))) dir.create(paste0(dir2save,"/results_", sps))
@@ -186,7 +186,7 @@ minba <- function(occ = NULL, varbles = NULL,
         byce$Spearman.cor
         save(byce, file = paste0(path, "/boyce.RData"))
 
-        # In the last bandwidth it would make no sense repeating predictions/evaluations on the same extent
+        # In the last buffer it would make no sense repeating predictions/evaluations on the same extent
         # to assess for transferability. However, for the sake of consistency in the execution time, they are
         # calculated.
         # To return to the version where they are not calculated, check commit e6e0040 of 25/08/2018
@@ -216,9 +216,9 @@ minba <- function(occ = NULL, varbles = NULL,
         if (x == n_times){ break }else{ x <- x +1 }
       } #end of repeat n times
 
-      if(is.null(modl)){ print("jumping to next bandwidth"); next }
+      if(is.null(modl)){ print("jumping to next buffer"); next }
 
-      cat("\n","computing average for",specs_long,"- bandwidth #",bdw,"\n")
+      cat("\n","computing average for",specs_long,"- buffer #",bdw,"\n")
       dt2exp[,-c(1:6)] <- data.frame(lapply(dt2exp[-c(1:6)], function(x) as.numeric(as.character(x))))
       dt2exp_m <- mean(dt2exp[(nrow(dt2exp)-n_times+1):nrow(dt2exp), (ncol(dt2exp)-4)], na.rm = TRUE) #mean Boyce partial area
       dt2exp_m2 <- mean(dt2exp[(nrow(dt2exp)-n_times+1):nrow(dt2exp), ncol(dt2exp)], na.rm = TRUE) #mean Boyce whole area
@@ -247,10 +247,10 @@ minba <- function(occ = NULL, varbles = NULL,
         if (brk == 1)  break
       }
 
-    } # end of for each bandwidth
+    } # end of for each buffer
 
-    names(dt2exp_mean) <- c("Species", "Bandwidth", "BoyceIndex_part", "BoyceIndex_tot", "SD_part", "SD_tot", "ExecutionTime")
-    names(dt2exp) <- c("Species", "ModelNum", "Bandwidth", "numPresencesCalib", "numPresencesTest", "numBackground", "AUC_part", "BoyceIndex", "numPresencesTest_tot", "numBackground_tot", "AUC_tot", "BoyceIndex_tot")
+    names(dt2exp_mean) <- c("Species", "Buffer", "BoyceIndex_part", "BoyceIndex_tot", "SD_part", "SD_tot", "ExecutionTime")
+    names(dt2exp) <- c("Species", "ModelNum", "Buffer", "numPresencesCalib", "numPresencesTest", "numBackground", "AUC_part", "BoyceIndex", "numPresencesTest_tot", "numBackground_tot", "AUC_tot", "BoyceIndex_tot")
     names(selfinfo2exp) <- c("Species", "ModelNum", "num_pres_calib", "num_pres_calib_used", "num_pres_test", "num_pres_test_used", "num_background", "num_bckgrnd_used", "exec_time")
 
     computing_ranks <- 1
@@ -267,10 +267,10 @@ minba <- function(occ = NULL, varbles = NULL,
                      row.names(dt2exp_mean[dt2exp_mean$rankFinalWithTime == 1, ]),
                      row.names(dt2exp_mean[dt2exp_mean$rankFinalWithTime == 2, ]))
       best2_bnd <- as.data.frame(t(best2_bnd))
-      names(best2_bnd) <- c("Species", "Best_Bandwidth_NoTime", "SecondBest_bandwidth_NoTime", "Best_Bandwidth_WithTime", "SecondBest_bandwidth_WithTime")
+      names(best2_bnd) <- c("Species", "Best_Buffer_NoTime", "SecondBest_Buffer_NoTime", "Best_Buffer_WithTime", "SecondBest_Buffer_WithTime")
 
       best2_bnd_2exp <- rbind(best2_bnd_2exp, best2_bnd)
-      write.csv(best2_bnd_2exp, paste0(dir2save, "/rankingBestBandwidth.csv"), row.names = FALSE)
+      write.csv(best2_bnd_2exp, paste0(dir2save, "/rankingBestBuffer.csv"), row.names = FALSE)
     }
 
     write.csv(dt2exp_mean, paste0(dir2save, "/results_", sps, "/info_mod_means_", sps, ".csv"), row.names = FALSE)
@@ -280,25 +280,25 @@ minba <- function(occ = NULL, varbles = NULL,
     #### Making a plot ####
     graphics.off()
     dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")] <- round(dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")], 3)
-    pdf(paste0(dir2save, "/results_", sps, "/boyce_bandwidth_", sps, "_part_tot.pdf"))
+    pdf(paste0(dir2save, "/results_", sps, "/boyce_buffer_", sps, "_part_tot.pdf"))
     if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }
-    plt <- xyplot(BoyceIndex_part ~ Bandwidth, dt2exp_mean,
+    plt <- xyplot(BoyceIndex_part ~ Buffer, dt2exp_mean,
                   type = tp,
                   span = 0.8,
                   ylim = c(0.45, 1.05),
                   col = "blue",
                   main = bquote(Boyce~Index~(mean~of~.(n_times)~models)~-~italic(.(specs_long))),
-                  ylab = "Boyce Index", xlab = "Bandwidth (km)",
+                  ylab = "Boyce Index", xlab = "Buffer (km)",
                   key=list(#space = "right",
                   x=0.5,y=0.2,
                   lines = list(col=c("blue", "green", "magenta")),
                   text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
-    plt1 <- xyplot(ExecutionTime ~ Bandwidth, dt2exp_mean,
+    plt1 <- xyplot(ExecutionTime ~ Buffer, dt2exp_mean,
                    type = c("p", "r"),
                    ylab = "Execution Time (min)",
                    col = "magenta")
     dbl_plt <- doubleYScale(plt, plt1, add.ylab2 = TRUE)
-    plt2 <- xyplot(BoyceIndex_tot ~ Bandwidth, dt2exp_mean,
+    plt2 <- xyplot(BoyceIndex_tot ~ Buffer, dt2exp_mean,
                    type = tp,
                    span = 0.8,
                    col = "green")
