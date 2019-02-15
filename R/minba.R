@@ -16,7 +16,7 @@
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
 #' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
 #' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
-#' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/)
+#' @param prj Coordinates system (e.g. "4326" is WGS84)
 #' @param num_bands Number of buffers
 #' @param n_times Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
@@ -55,14 +55,14 @@ minba <- function(occ = NULL, varbles = NULL,
 
   #vrbles <- stack()
   for(rst in 1:length(rstrs)){
-    temp <- raster(rstrs[rst])
+    temp <- raster::raster(rstrs[rst])
     if(rst == 1){
-      vrbles <- stack(temp)
+      vrbles <- raster::stack(temp)
     }else{
-      vrbles <- stack(vrbles, temp)
+      vrbles <- raster::stack(vrbles, temp)
     }
   }
-  if (!is.null(prj)) crs(vrbles) <- CRS(paste0("+init=EPSG:", prj))
+  if (!is.null(prj)) crs(vrbles) <- sp::CRS(paste0("+init=EPSG:", prj))
 
 
   #### Modelling per each species ####
@@ -75,7 +75,7 @@ minba <- function(occ = NULL, varbles = NULL,
     specs_long <- as.character(unique(pres$species)) # complete name of the species
     pres <- pres[, c(2, 1, 4)]
     coordinates(pres) <- c("lon", "lat")  # setting spatial coordinates
-    if (!is.null(prj)) pres@proj4string <- CRS(paste0("+init=EPSG:", prj))
+    if (!is.null(prj)) pres@proj4string <- sp::CRS(paste0("+init=EPSG:", prj))
 
     #### Calculating the centre of the population, its most distant point and "bands" ####
     #pop_cent <- c(mean(presences$x, na.rm =TRUE), mean(presences$y, na.rm =TRUE))
@@ -86,7 +86,7 @@ minba <- function(occ = NULL, varbles = NULL,
     #geocntr1 <- geocntr
     #coordinates(geocntr1) <- c("x", "y")
 
-    pres$dist2centr <- distGeo(pres, geocntr) #in meters
+    pres$dist2centr <- geosphere::distGeo(pres, geocntr) #in meters
     pres$dist2centr <- pres$dist2centr/1000   #in km
     furthest <- max(pres$dist2centr)
 
@@ -105,7 +105,7 @@ minba <- function(occ = NULL, varbles = NULL,
     ext1[1, 2] <- pres@bbox[1, 2] + incr1[1]
     ext1[2, 1] <- pres@bbox[2, 1] - incr1[2]
     ext1[2, 2] <- pres@bbox[2, 2] + incr1[2]
-    varbles1 <- stack(crop(vrbles, ext1))
+    varbles1 <- raster::stack(raster::crop(vrbles, ext1))
 
     # number of background points (see Guevara et al, 2017)
     num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100
@@ -129,7 +129,7 @@ minba <- function(occ = NULL, varbles = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles <- stack(crop(vrbles, ext))
+      varbles <- raster::stack(crop(vrbles, ext))
 
       # number of background points (see Guevara et al, 2017)
       num_bckgr <- (varbles@ncols * varbles@nrows) * 50/100
@@ -163,8 +163,8 @@ minba <- function(occ = NULL, varbles = NULL,
         dir_func <- function(varbles, pres4cali, num_bckgr, path){ # to avoid stop modelling if low number of background points or other errors
           res <- tryCatch(
             {
-              modl <- maxent(varbles, pres4cali, removeDuplicates = TRUE,
-                             nbg=num_bckgr)
+              modl <- dismo::maxent(varbles, pres4cali, removeDuplicates = TRUE,
+                                    nbg=num_bckgr)
               if(exists("modl")) save(modl, file = paste0(path, "/model.RData"))
             },
             error = function(con){
@@ -179,15 +179,15 @@ minba <- function(occ = NULL, varbles = NULL,
         if(is.null(modl)){ break }
 
         #making predictions on the same extent
-        preds <- predict(modl, varbles, filename = paste0(path, "/predictions"), progress = '', overwrite = TRUE)
+        preds <- dismo::predict(modl, varbles, filename = paste0(path, "/predictions"), progress = '', overwrite = TRUE)
 
         #make evaluations (on the same extent with 30% to test)
-        bg <- randomPoints(varbles, num_bckgr) # background points
-        evs <- evaluate(modl, p=pres4test, a=bg, x=varbles)
+        bg <- dismo::randomPoints(varbles, num_bckgr) # background points
+        evs <- dismo::evaluate(modl, p=pres4test, a=bg, x=varbles)
         save(evs, file = paste0(path, "/evaluations.RData"))
 
         #Computing Boyce Index (on the same extent with 30% to test)
-        byce <- ecospat.boyce(fit = preds, obs = pres4test@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
+        byce <- ecospat::ecospat.boyce(fit = preds, obs = pres4test@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
         byce$Spearman.cor
         save(byce, file = paste0(path, "/boyce.RData"))
 
@@ -197,15 +197,15 @@ minba <- function(occ = NULL, varbles = NULL,
         # To return to the version where they are not calculated, check commit e6e0040 of 25/08/2018
 
         ## making predictions on the whole species extent
-        preds1 <- predict(modl, varbles1, filename=paste0(path, "/predictions_tot"), progress = '', overwrite = TRUE)
+        preds1 <- dismo::predict(modl, varbles1, filename=paste0(path, "/predictions_tot"), progress = '', overwrite = TRUE)
 
         #make evaluations
-        bg1 <- randomPoints(varbles1, num_bckgr1) # background points
-        evs1 <- evaluate(modl, p=pres4test_tot, a=bg1, x=varbles1)
+        bg1 <- dismo::randomPoints(varbles1, num_bckgr1) # background points
+        evs1 <- dismo::evaluate(modl, p=pres4test_tot, a=bg1, x=varbles1)
         save(evs1, file = paste0(path, "/evaluations_tot.RData"))
 
         #Computing Boyce Index
-        byce1 <- ecospat.boyce(fit = preds1, obs = pres4test_tot@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
+        byce1 <- ecospat::ecospat.boyce(fit = preds1, obs = pres4test_tot@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
         byce1$Spearman.cor
         save(byce1, file = paste0(path, "/boyce_tot.RData"))
 
