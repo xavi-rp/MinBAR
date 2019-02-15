@@ -14,28 +14,30 @@ minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
 
 \item{varbles}{A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil}
 
-\item{num_bands}{Number of bandwidths}
+\item{prj}{Coordinates system (e.g. "4326" is WGS84)}
 
-\item{n_times}{Number of models}
+\item{num_bands}{Number of buffers}
 
-\item{BI_part}{}
+\item{n_times}{Number of replicates}
 
-\item{BI_tot}{}
+\item{BI_part}{Maximum Boyce Index Partial to stop the process if reached}
 
-\item{SD_BI_part}{}
+\item{BI_tot}{Maximum Boyce Index Total to stop the process if reached}
 
-\item{SD_BI_tot}{}
+\item{SD_BI_part}{Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)}
+
+\item{SD_BI_tot}{Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)}
 }
 \value{
-\code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each bandwidth
+\code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 }
 \description{
 It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
 }
 \details{
-minba aims at (1) defining what is the minimum or optimal background extent 
-necessary to fit good partial SDMs and/or (2) determining if the background 
-area used to fit a partial SDM is reliable enough to extract ecologically 
+minba aims at (1) defining what is the minimum or optimal background extent
+necessary to fit good partial SDMs and/or (2) determining if the background
+area used to fit a partial SDM is reliable enough to extract ecologically
 relevant conclusions from it.
 }
 \author{

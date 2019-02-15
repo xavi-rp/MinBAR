@@ -44,7 +44,6 @@ minba <- function(occ = NULL, varbles = NULL,
 
   #### Retrieving Presence Records ####
   presences <- read.csv(occ, header = TRUE)
-  head(presences)
   presences$sp2 <- tolower(paste(substr(presences$species, 1, 3), substr(sub(".* ", "", presences$species), 1, 3), sep = "_"))
   colnames(presences)[1:2] <- c("lon", "lat")
   presences <- presences[, c(2,1,3,4)]
@@ -82,7 +81,7 @@ minba <- function(occ = NULL, varbles = NULL,
     #pop_cent <- as.data.frame(matrix(pop_cent, ncol = 2))
     #names(pop_cent) <- c("x", "y")
 
-    geocntr <- as.data.frame(geomean(pres))  #mean location for spherical (longitude/latitude) coordinates that deals with the angularity
+    geocntr <- as.data.frame(geosphere::geomean(pres))  #mean location for spherical (longitude/latitude) coordinates that deals with the angularity
     #geocntr1 <- geocntr
     #coordinates(geocntr1) <- c("x", "y")
 
@@ -129,7 +128,7 @@ minba <- function(occ = NULL, varbles = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles <- raster::stack(crop(vrbles, ext))
+      varbles <- raster::stack(raster::crop(vrbles, ext))
 
       # number of background points (see Guevara et al, 2017)
       num_bckgr <- (varbles@ncols * varbles@nrows) * 50/100
@@ -287,26 +286,26 @@ minba <- function(occ = NULL, varbles = NULL,
     dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")] <- round(dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")], 3)
     pdf(paste0(dir2save, "/results_", sps, "/boyce_buffer_", sps, "_part_tot.pdf"))
     if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }
-    plt <- xyplot(BoyceIndex_part ~ Buffer, dt2exp_mean,
-                  type = tp,
-                  span = 0.8,
-                  ylim = c(0.45, 1.05),
-                  col = "blue",
-                  main = bquote(Boyce~Index~(mean~of~.(n_times)~models)~-~italic(.(specs_long))),
-                  ylab = "Boyce Index", xlab = "Buffer (km)",
-                  key=list(#space = "right",
-                  x=0.5,y=0.2,
-                  lines = list(col=c("blue", "green", "magenta")),
-                  text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
-    plt1 <- xyplot(ExecutionTime ~ Buffer, dt2exp_mean,
-                   type = c("p", "r"),
-                   ylab = "Execution Time (min)",
-                   col = "magenta")
-    dbl_plt <- doubleYScale(plt, plt1, add.ylab2 = TRUE)
-    plt2 <- xyplot(BoyceIndex_tot ~ Buffer, dt2exp_mean,
-                   type = tp,
-                   span = 0.8,
-                   col = "green")
+    plt <- lattice::xyplot(BoyceIndex_part ~ Buffer, dt2exp_mean,
+                           type = tp,
+                           span = 0.8,
+                           ylim = c(0.45, 1.05),
+                           col = "blue",
+                           main = bquote(Boyce~Index~(mean~of~.(n_times)~models)~-~italic(.(specs_long))),
+                           ylab = "Boyce Index", xlab = "Buffer (km)",
+                           key=list(#space = "right",
+                           x=0.5,y=0.2,
+                           lines = list(col=c("blue", "green", "magenta")),
+                           text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
+    plt1 <- lattice::xyplot(ExecutionTime ~ Buffer, dt2exp_mean,
+                            type = c("p", "r"),
+                            ylab = "Execution Time (min)",
+                            col = "magenta")
+    dbl_plt <- latticeExtra::doubleYScale(plt, plt1, add.ylab2 = TRUE)
+    plt2 <- lattice::xyplot(BoyceIndex_tot ~ Buffer, dt2exp_mean,
+                            type = tp,
+                            span = 0.8,
+                            col = "green")
     plot(dbl_plt + as.layer(plt2))
     dev.off()
   } # end of loop for sps
