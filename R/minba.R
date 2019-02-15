@@ -54,7 +54,7 @@ minba <- function(occ = NULL, varbles = NULL,
 
   #vrbles <- stack()
   for(rst in 1:length(rstrs)){
-    temp <- raster::raster(rstrs[rst])
+    temp <- raster::Raster(rstrs[rst])
     if(rst == 1){
       vrbles <- raster::stack(temp)
     }else{
