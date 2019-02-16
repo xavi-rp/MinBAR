@@ -18,7 +18,7 @@
 #' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
 #' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )
 #' @param num_bands Number of buffers
-#' @param n_times Number of replicates
+#' @param n_rep Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
 #' @param BI_tot Maximum Boyce Index Total to stop the process if reached
 #' @param SD_BI_part Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)
@@ -34,7 +34,7 @@
 
 minba <- function(occ = NULL, varbles = NULL,
                   prj = NULL,
-                  num_bands = 10, n_times = 3,
+                  num_bands = 10, n_rep = 3,
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
@@ -217,15 +217,15 @@ minba <- function(occ = NULL, varbles = NULL,
         selfinfo2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), nrow(pres4cali), nrow(modl@presence), nrow(pres4test), evs@np, num_bckgr, evs@na, t2), 1, 9, byrow = TRUE))
         selfinfo2exp <- rbind(selfinfo2exp, selfinfo2exp_2)
 
-        if (x == n_times){ break }else{ x <- x +1 }
+        if (x == n_rep){ break }else{ x <- x +1 }
       } #end of repeat n times
 
       if(is.null(modl)){ print("jumping to next buffer"); next }
 
       cat("\n","computing average for",specs_long,"- buffer #",bdw,"\n")
       dt2exp[,-c(1:6)] <- data.frame(lapply(dt2exp[-c(1:6)], function(x) as.numeric(as.character(x))))
-      dt2exp_m <- mean(dt2exp[(nrow(dt2exp)-n_times+1):nrow(dt2exp), (ncol(dt2exp)-4)], na.rm = TRUE) #mean Boyce partial area
-      dt2exp_m2 <- mean(dt2exp[(nrow(dt2exp)-n_times+1):nrow(dt2exp), ncol(dt2exp)], na.rm = TRUE) #mean Boyce whole area
+      dt2exp_m <- mean(dt2exp[(nrow(dt2exp)-n_rep+1):nrow(dt2exp), (ncol(dt2exp)-4)], na.rm = TRUE) #mean Boyce partial area
+      dt2exp_m2 <- mean(dt2exp[(nrow(dt2exp)-n_rep+1):nrow(dt2exp), ncol(dt2exp)], na.rm = TRUE) #mean Boyce whole area
       if (bdw > 3){
         dt2exp_sd1 <- sd(c(dt2exp_mean$V3[(bdw-3):(bdw-1)], dt2exp_m), na.rm = TRUE)
         dt2exp_sd2 <- sd(c(dt2exp_mean$V4[(bdw-3):(bdw-1)], dt2exp_m2), na.rm = TRUE)
@@ -234,7 +234,7 @@ minba <- function(occ = NULL, varbles = NULL,
         dt2exp_sd2 <- NA
       }
       selfinfo2exp[,-c(1:8)] <- data.frame(lapply(selfinfo2exp[-c(1:8)], function(x) as.numeric(as.character(x))))
-      dt2exp_m1 <- mean(selfinfo2exp[(nrow(selfinfo2exp)-n_times+1):nrow(selfinfo2exp), ncol(selfinfo2exp)], na.rm = TRUE)
+      dt2exp_m1 <- mean(selfinfo2exp[(nrow(selfinfo2exp)-n_rep+1):nrow(selfinfo2exp), ncol(selfinfo2exp)], na.rm = TRUE)
       dt2exp_mean_2 <- as.data.frame(matrix(c(specs_long, bndwidth[bdw], dt2exp_m, dt2exp_m2, dt2exp_sd1, dt2exp_sd2, dt2exp_m1), 1, 7, byrow = TRUE))
       dt2exp_mean <- rbind(dt2exp_mean, dt2exp_mean_2)
       dt2exp_mean[, c(2:7)] <- data.frame(lapply(dt2exp_mean[c(2:7)], function(x) as.numeric(as.character(x))))
@@ -291,7 +291,7 @@ minba <- function(occ = NULL, varbles = NULL,
                            span = 0.8,
                            ylim = c(0.45, 1.05),
                            col = "blue",
-                           main = bquote(Boyce~Index~(mean~of~.(n_times)~models)~-~italic(.(specs_long))),
+                           main = bquote(Boyce~Index~(mean~of~.(n_rep)~models)~-~italic(.(specs_long))),
                            ylab = "Boyce Index", xlab = "Buffer (km)",
                            key=list(#space = "right",
                            x=0.5,y=0.2,
