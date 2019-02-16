@@ -54,14 +54,14 @@ minba <- function(occ = NULL, varbles = NULL,
 
   #vrbles <- stack()
   for(rst in 1:length(rstrs)){
-    temp <- raster::Raster(rstrs[rst])
+    temp <- raster::raster(rstrs[rst])
     if(rst == 1){
       vrbles <- raster::stack(temp)
     }else{
       vrbles <- raster::stack(vrbles, temp)
     }
   }
-  if (!is.null(prj)) crs(vrbles) <- sp::CRS(paste0("+init=EPSG:", prj))
+  if (!is.null(prj)) vrbles@crs <- sp::CRS(paste0("+init=EPSG:", prj))
 
 
   #### Modelling per each species ####
@@ -73,7 +73,7 @@ minba <- function(occ = NULL, varbles = NULL,
     pres <- presences[presences$sp2 %in% sps, ] # selecting for species
     specs_long <- as.character(unique(pres$species)) # complete name of the species
     pres <- pres[, c(2, 1, 4)]
-    coordinates(pres) <- c("lon", "lat")  # setting spatial coordinates
+    sp::coordinates(pres) <- c("lon", "lat")  # setting spatial coordinates
     if (!is.null(prj)) pres@proj4string <- sp::CRS(paste0("+init=EPSG:", prj))
 
     #### Calculating the centre of the population, its most distant point and "bands" ####
