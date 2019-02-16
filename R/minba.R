@@ -38,7 +38,6 @@ minba <- function(occ = NULL, varbles = NULL,
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
-  print("new version")
   wd <- getwd()
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
