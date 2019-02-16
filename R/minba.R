@@ -16,7 +16,7 @@
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
 #' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
 #' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
-#' @param prj Coordinates system (e.g. "4326" is WGS84; please check http://spatialreference.org/ )
+#' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )
 #' @param num_bands Number of buffers
 #' @param n_times Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
@@ -38,6 +38,7 @@ minba <- function(occ = NULL, varbles = NULL,
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
+  print("new version")
   wd <- getwd()
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
