@@ -6,7 +6,7 @@
 \title{Downloading species ocurrence data (presences) from Bioatles}
 \usage{
 minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
-  n_times = 3, BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
+  n_rep = 3, BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
   SD_BI_tot = NULL)
 }
 \arguments{
@@ -14,11 +14,11 @@ minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
 
 \item{varbles}{A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil}
 
-\item{prj}{Coordinates system (e.g. "4326" is WGS84)}
+\item{prj}{Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )}
 
 \item{num_bands}{Number of buffers}
 
-\item{n_times}{Number of replicates}
+\item{n_rep}{Number of replicates}
 
 \item{BI_part}{Maximum Boyce Index Partial to stop the process if reached}
 

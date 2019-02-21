@@ -14,6 +14,10 @@
 #'
 #' @author Xavier Rotllan-Puig
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
+#' @importFrom grDevices dev.off graphics.off pdf
+#' @importFrom graphics plot
+#' @importFrom stats quantile sd
+#' @importFrom utils read.csv write.csv
 #' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
 #' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
 #' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )
@@ -306,7 +310,7 @@ minba <- function(occ = NULL, varbles = NULL,
                             type = tp,
                             span = 0.8,
                             col = "green")
-    plot(dbl_plt + as.layer(plt2))
+    plot(dbl_plt + latticeExtra::as.layer(plt2))
     dev.off()
   } # end of loop for sps
 }
