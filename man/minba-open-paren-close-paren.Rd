@@ -3,7 +3,7 @@
 \name{minba()}
 \alias{minba()}
 \alias{minba}
-\title{Downloading species ocurrence data (presences) from Bioatles}
+\title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
 minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
   n_rep = 3, BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
@@ -33,12 +33,6 @@ minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
 }
 \description{
 It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
-}
-\details{
-minba aims at (1) defining what is the minimum or optimal background extent
-necessary to fit good partial SDMs and/or (2) determining if the background
-area used to fit a partial SDM is reliable enough to extract ecologically
-relevant conclusions from it.
 }
 \author{
 Xavier Rotllan-Puig

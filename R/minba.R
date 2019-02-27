@@ -4,15 +4,9 @@
 ########                          MinBA                        ############
 ########                                                       ############
 ###########################################################################
-
-#' Downloading species ocurrence data (presences) from Bioatles
-#'
-#' minba aims at (1) defining what is the minimum or optimal background extent
-#' necessary to fit good partial SDMs and/or (2) determining if the background
-#' area used to fit a partial SDM is reliable enough to extract ecologically
-#' relevant conclusions from it.
 #'
 #' @author Xavier Rotllan-Puig
+#' @title Determining the Minimal Background Area for Species Distribution Models
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
 #' @importFrom grDevices dev.off graphics.off pdf
 #' @importFrom graphics plot
