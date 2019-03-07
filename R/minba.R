@@ -5,9 +5,10 @@
 ########                                                       ############
 ###########################################################################
 #'
-#' @author Xavier Rotllan-Puig
+#' @author Xavier Rotllan-Puig & Anna Traveset
 #' @title Determining the Minimal Background Area for Species Distribution Models
 #' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
+#' @details Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 #' @importFrom grDevices dev.off graphics.off pdf
 #' @importFrom graphics plot
 #' @importFrom stats quantile sd
@@ -25,9 +26,6 @@
 #' @name minba()
 #'
 # Created on: Summer 2018
-#
-# Created by: Xavier Rotllan-Puig (xavi.rotllan.puig@gmail.com)
-#
 #
 
 minba <- function(occ = NULL, varbles = NULL,
