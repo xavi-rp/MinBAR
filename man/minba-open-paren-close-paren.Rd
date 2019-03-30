@@ -37,6 +37,9 @@ It aims at (1) defining what is the minimum or optimal background extent necessa
 \details{
 Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 }
+\references{
+Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
+}
 \author{
 Xavier Rotllan-Puig & Anna Traveset
 }
