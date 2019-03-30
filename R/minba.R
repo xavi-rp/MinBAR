@@ -24,6 +24,8 @@
 #' @param SD_BI_tot Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)
 #' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 #' @name minba()
+#' @references
+#' Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
 #'
 # Created on: Summer 2018
 #
