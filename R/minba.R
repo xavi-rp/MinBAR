@@ -7,15 +7,16 @@
 #'
 #' @author Xavier Rotllan-Puig & Anna Traveset
 #' @title Determining the Minimal Background Area for Species Distribution Models
-#' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
+#' @description A versatile tool that aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019)
 #' @details Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 #' @importFrom grDevices dev.off graphics.off pdf
 #' @importFrom graphics plot
 #' @importFrom stats quantile sd
 #' @importFrom utils read.csv write.csv
-#' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
-#' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
-#' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )
+#' @param occ Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)
+#' @param varbles An raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .hdr Labelled .bil
+#' @param wd A directory to save the results
+#' @param prj Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
 #' @param num_bands Number of buffers
 #' @param n_rep Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
@@ -25,38 +26,51 @@
 #' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 #' @name minba()
 #' @references Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
+#' @examples
 #'
-# Created on: Summer 2018
+#' MinBAR:::minba(occ = sprecords, varbles = bioscrop, wd = tempdir(), prj = 4326, num_bands = 3)
+#'
+#'
+# Created on: Summer 2018 - Winter 2019
 #
 
 minba <- function(occ = NULL, varbles = NULL,
+                  wd = NULL,
                   prj = NULL,
                   num_bands = 10, n_rep = 3,
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
-  wd <- getwd()
+  if(is.null(wd)) stop("Please, indicate a directory (wd) to save results")
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
 
   #### Retrieving Presence Records ####
-  presences <- read.csv(occ, header = TRUE)
+ if(!exists("occ") | ncol(occ) > 3){
+   stop("Please provide a 3-columns data frame with the presences coordinates (long, lat and species name)")
+ }else{
+   presences <- occ
+ }
   presences$sp2 <- tolower(paste(substr(presences$species, 1, 3), substr(sub(".* ", "", presences$species), 1, 3), sep = "_"))
   colnames(presences)[1:2] <- c("lon", "lat")
   presences <- presences[, c(2,1,3,4)]
 
   #### Climatic Data ####
-  rstrs <- list.files(varbles, pattern = c(".bil$"), full.names = T)
-  rstrs <- c(rstrs, list.files(varbles, pattern = c(".tif$"), full.names = T))
+  if(!exists("varbles")){
+    rstrs <- list.files(varbles, pattern = c(".bil$"), full.names = T)
+    rstrs <- c(rstrs, list.files(varbles, pattern = c(".tif$"), full.names = T))
 
-  #vrbles <- stack()
-  for(rst in 1:length(rstrs)){
-    temp <- raster::raster(rstrs[rst])
-    if(rst == 1){
-      vrbles <- raster::stack(temp)
-    }else{
-      vrbles <- raster::stack(vrbles, temp)
+    #vrbles <- stack()
+    for(rst in 1:length(rstrs)){
+      temp <- raster::raster(rstrs[rst])
+      if(rst == 1){
+        vrbles <- raster::stack(temp)
+      }else{
+        vrbles <- raster::stack(vrbles, temp)
+      }
     }
+  }else{
+    vrbles <- varbles
   }
   if (!is.null(prj)) vrbles@crs <- sp::CRS(paste0("+init=EPSG:", prj))
 
@@ -159,8 +173,19 @@ minba <- function(occ = NULL, varbles = NULL,
         dir_func <- function(varbles, pres4cali, num_bckgr, path){ # to avoid stop modelling if low number of background points or other errors
           res <- tryCatch(
             {
-              modl <- dismo::maxent(varbles, pres4cali, removeDuplicates = TRUE,
-                                    nbg=num_bckgr)
+              if(maxent_tool == "dismo"){
+                modl <- dismo::maxent(varbles, pres4cali, nbg = num_bckgr)
+              }else if(maxent_tool == "maxnet"){
+                #pres4cali_vect <- raster:::rasterize(pres4cali, varbles[[1]], field = 1, background = 0)
+                #pres4cali_vect <- pres4cali_vect@data@values
+                data_train <- extract(varbles, pres4cali)
+                bckgr_pts <- dismo:::randomPoints(varbles, num_bckgr)
+                bckgr_train <- extract(varbles, bckgr_pts)
+                pres_abs <- c(rep(1, nrow(data_train)), rep(0, nrow(bckgr_train)))
+                data_model <- data.frame(cbind(pres_abs, rbind(data_train, bckgr_train)))
+                modl1 <- maxnet::maxnet(data_model[, 1], data_model[, - 1])
+              }
+
               if(exists("modl")) save(modl, file = paste0(path, "/model.RData"))
             },
             error = function(con){
@@ -175,7 +200,16 @@ minba <- function(occ = NULL, varbles = NULL,
         if(is.null(modl)){ break }
 
         #making predictions on the same extent
-        preds <- dismo::predict(modl, varbles, filename = paste0(path, "/predictions"), progress = '', overwrite = TRUE)
+        if(maxent_tool == "dismo"){
+          preds <- dismo::predict(modl, varbles, filename = paste0(path, "/predictions"), progress = '', overwrite = TRUE)
+        }else if(maxent_tool == "maxnet"){
+          varbles2predict <- as.data.frame(matrix(nrow = length(varbles[[1]]@data@values), ncol = dim(varbles)[3]))
+          names(varbles2predict) <- colnames(data_train)
+          for(i in 1:dim(varbles)[3]){
+            varbles2predict[, i] <- varbles[[i]]@data@values
+          }
+          preds1 <- predict(modl1, varbles2predict, clamp = TRUE, type = c("logistic"))
+        }
 
         #make evaluations (on the same extent with 30% to test)
         bg <- dismo::randomPoints(varbles, num_bckgr) # background points
@@ -279,7 +313,7 @@ minba <- function(occ = NULL, varbles = NULL,
     write.csv(selfinfo2exp, paste0(dir2save, "/results_", sps, "/selfinfo_mod_", sps, ".csv"), row.names = FALSE)
 
     #### Making a plot ####
-    graphics.off()
+    #graphics.off()
     dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")] <- round(dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")], 3)
     pdf(paste0(dir2save, "/results_", sps, "/boyce_buffer_", sps, "_part_tot.pdf"))
     if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }

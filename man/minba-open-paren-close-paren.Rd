@@ -5,16 +5,18 @@
 \alias{minba}
 \title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
-minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
-  n_rep = 3, BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
-  SD_BI_tot = NULL)
+minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
+  num_bands = 10, n_rep = 3, BI_part = NULL, BI_tot = NULL,
+  SD_BI_part = NULL, SD_BI_tot = NULL)
 }
 \arguments{
-\item{occ}{Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)}
+\item{occ}{Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)}
 
-\item{varbles}{A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil}
+\item{varbles}{An raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .hdr Labelled .bil}
 
-\item{prj}{Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )}
+\item{wd}{A directory to save the results}
+
+\item{prj}{Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )}
 
 \item{num_bands}{Number of buffers}
 
@@ -32,10 +34,22 @@ minba(occ = NULL, varbles = NULL, prj = NULL, num_bands = 10,
 \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 }
 \description{
-It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
+A versatile tool that aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019)
 }
 \details{
 Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
+}
+\examples{
+
+# Saving maxent.jar
+if(!file.exists(paste0(tempdir(), "/dismo/java/maxent.jar"))){
+dir.create(paste0(tempdir(), "/dismo/"))
+dir.create(paste0(tempdir(), "/dismo/java"))
+file.copy(system.file("maxent.jar", package="MinBAR"), paste0(tempdir(), "/dismo/java/maxent.jar"))
+}
+MinBAR:::minba(occ = sprecords, varbles = bioscrop, wd = tempdir(), prj = 4326, num_bands = 3)
+
+
 }
 \references{
 Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
