@@ -7,15 +7,16 @@
 #'
 #' @author Xavier Rotllan-Puig & Anna Traveset
 #' @title Determining the Minimal Background Area for Species Distribution Models
-#' @description It aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining if the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it.
+#' @description A versatile tool that aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019)
 #' @details Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 #' @importFrom grDevices dev.off graphics.off pdf
 #' @importFrom graphics plot
 #' @importFrom stats quantile sd
 #' @importFrom utils read.csv write.csv
-#' @param occ Data set with presences (occurrences). A csv file with 3 columns: long, lat and species name (in this order)
-#' @param varbles A directory where the independent variables (rasters) are. It will use all of them in the folder. Supported: .tif and .hdr Labelled .bil
-#' @param prj Coordinates system (e.g. "4326" is WGS84; check http://spatialreference.org/ )
+#' @param occ Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)
+#' @param varbles A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil
+#' @param wd A directory to save the results
+#' @param prj Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
 #' @param num_bands Number of buffers
 #' @param n_rep Number of replicates
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
@@ -25,38 +26,54 @@
 #' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 #' @name minba()
 #' @references Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
+#' @examples
 #'
-# Created on: Summer 2018
+#' MinBAR:::minba(occ = sprecords, varbles = bioscrop, wd = tempdir(), prj = 4326, num_bands = 3)
+#'
+#'
+# Created on: Summer 2018 - Winter 2019
 #
 
 minba <- function(occ = NULL, varbles = NULL,
+                  wd = NULL,
                   prj = NULL,
                   num_bands = 10, n_rep = 3,
+                  maxent_tool = "maxnet",
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
   #### Settings ####
-  wd <- getwd()
+  if(is.null(wd)) stop("Please, indicate a directory (wd) to save results")
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
 
   #### Retrieving Presence Records ####
-  presences <- read.csv(occ, header = TRUE)
+  if(is.vector(occ)){
+    presences <- read.csv(occ, header = TRUE)
+  }else if(!exists("occ") | ncol(occ) > 3){
+    stop("Please provide a 3-columns data frame with the presences coordinates (long, lat and species name)")
+  }else{
+    presences <- occ
+  }
   presences$sp2 <- tolower(paste(substr(presences$species, 1, 3), substr(sub(".* ", "", presences$species), 1, 3), sep = "_"))
   colnames(presences)[1:2] <- c("lon", "lat")
   presences <- presences[, c(2,1,3,4)]
 
   #### Climatic Data ####
-  rstrs <- list.files(varbles, pattern = c(".bil$"), full.names = T)
-  rstrs <- c(rstrs, list.files(varbles, pattern = c(".tif$"), full.names = T))
+  if(!exists("varbles") | is.vector(varbles)){
+    rstrs <- list.files(varbles, pattern = c(".bil$"), full.names = T)
+    rstrs <- c(rstrs, list.files(varbles, pattern = c(".tif$"), full.names = T))
 
-  #vrbles <- stack()
-  for(rst in 1:length(rstrs)){
-    temp <- raster::raster(rstrs[rst])
-    if(rst == 1){
-      vrbles <- raster::stack(temp)
-    }else{
-      vrbles <- raster::stack(vrbles, temp)
+    #vrbles <- stack()
+    for(rst in 1:length(rstrs)){
+      temp <- raster::raster(rstrs[rst])
+      if(rst == 1){
+        vrbles <- raster::stack(temp)
+      }else{
+        vrbles <- raster::stack(vrbles, temp)
+      }
     }
+  }else{
+    vrbles <- varbles
   }
   if (!is.null(prj)) vrbles@crs <- sp::CRS(paste0("+init=EPSG:", prj))
 
@@ -101,10 +118,12 @@ minba <- function(occ = NULL, varbles = NULL,
     ext1[1, 2] <- pres@bbox[1, 2] + incr1[1]
     ext1[2, 1] <- pres@bbox[2, 1] - incr1[2]
     ext1[2, 2] <- pres@bbox[2, 2] + incr1[2]
-    varbles1 <- raster::stack(raster::crop(vrbles, ext1))
+    varbles1 <<- raster::stack(raster::crop(vrbles, ext1))
 
     # number of background points (see Guevara et al, 2017)
     num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100
+    # background points
+    bckgr_pts1 <- dismo::randomPoints(varbles1[[1]], num_bckgr1, pres)
 
 
     #### Making models for each buffer ####
@@ -125,10 +144,10 @@ minba <- function(occ = NULL, varbles = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles <- raster::stack(raster::crop(vrbles, ext))
+      varbles2 <<- raster::stack(raster::crop(vrbles, ext))
 
       # number of background points (see Guevara et al, 2017)
-      num_bckgr <- (varbles@ncols * varbles@nrows) * 50/100
+      num_bckgr <- (varbles2@ncols * varbles2@nrows) * 50/100
       #if(num_bckgr<100) {
       #  pres4model1 <- sample(1:nrow(pres4model), nrow(pres4model)*0.1)
       #  pres4model <- pres4model[pres4model1,]
@@ -139,7 +158,11 @@ minba <- function(occ = NULL, varbles = NULL,
       samp <- as.numeric(unlist(folds))
       pres4cali <- pres4model[samp, 1]
       pres4test <- pres4model[-samp, 1]
-      rm(pres4model); gc()
+
+      # background points
+      bckgr_pts <- dismo::randomPoints(varbles2, num_bckgr, pres4model)
+
+      #rm(pres4model); gc()
 
       # sampling presences for testing on the whole extent (30% of total presences except those for calibrating)
       pres1 <- pres[-samp, 1]
@@ -149,18 +172,33 @@ minba <- function(occ = NULL, varbles = NULL,
 
       repeat{   # maybe it can be done directly with maxent; if so, we would also have the "average-model"
         t1 <- Sys.time()
-        cat("\r","modelling for",specs_long,"- buffer #",bdw,"_",x)
+        message("\r", "modelling for ", specs_long," - buffer #", bdw, "-", x)
 
-        # Running maxent from dismo
+        # Running maxent from dismo or maxnet
         if(!file.exists(paste0(dir2save,"/results_", sps))) dir.create(paste0(dir2save,"/results_", sps))
         if(!file.exists(paste0(dir2save,"/results_", sps, "/model_", sps, "_", bdw, "_", x))) dir.create(paste0(dir2save,"/results_", sps, "/model_", sps, "_", bdw, "_", x))
         path <- paste0(dir2save,"/results_", sps,"/model_", sps, "_", bdw, "_", x)
 
-        dir_func <- function(varbles, pres4cali, num_bckgr, path){ # to avoid stop modelling if low number of background points or other errors
+        dir_func <- function(varbles2, pres4cali, num_bckgr, bckgr_pts, path){ # to avoid stop modelling if low number of background points or other errors
           res <- tryCatch(
             {
-              modl <- dismo::maxent(varbles, pres4cali, removeDuplicates = TRUE,
-                                    nbg=num_bckgr)
+              data_train <- extract(varbles2, pres4cali)
+              if(maxent_tool == "dismo"){
+                #modl_dismo <- dismo::maxent(varbles2, pres4cali, nbg = num_bckgr)
+                modl <- dismo::maxent(varbles2, pres4cali, a = bckgr_pts)
+              }else if(maxent_tool == "maxnet"){
+                #pres4cali_vect <- raster:::rasterize(pres4cali, varbles2[[1]], field = 1, background = 0)
+                #pres4cali_vect <- pres4cali_vect@data@values
+                bckgr_train <- extract(varbles2, bckgr_pts)
+                pres_abs <- c(rep(1, nrow(data_train)), rep(0, nrow(bckgr_train)))
+                data_model <- data.frame(cbind(pres_abs, rbind(data_train, bckgr_train)))
+                data_model <- data_model[complete.cases(data_model), ]
+                modl <- maxnet::maxnet(data_model[, 1], data_model[, - 1],
+                                       f = maxnet::maxnet.formula(p = data_model[, 1],
+                                                                  data = data_model[, - 1],
+                                                                  classes = "default"))
+              }
+
               if(exists("modl")) save(modl, file = paste0(path, "/model.RData"))
             },
             error = function(con){
@@ -168,23 +206,50 @@ minba <- function(occ = NULL, varbles = NULL,
               return(NULL)
             }
           )
-          if(exists("modl")){ return(modl) }else{ return(NULL) }
+          if(exists("modl")){ return(list(modl, data_train)) }else{ return(NULL) }
         } #end of dir_func
 
-        modl <- dir_func(varbles, pres4cali, num_bckgr, path)
+        modl <- dir_func(varbles2, pres4cali, num_bckgr, bckgr_pts, path)
+        data_train <- modl[[2]]
+        modl <- modl[[1]]
         if(is.null(modl)){ break }
 
         #making predictions on the same extent
-        preds <- dismo::predict(modl, varbles, filename = paste0(path, "/predictions"), progress = '', overwrite = TRUE)
+        if(maxent_tool == "dismo"){
+          preds <- dismo::predict(modl, varbles2, args = 'outputformat=logistic',
+                                  filename = paste0(path, "/predictions"), progress = '',
+                                  overwrite = TRUE)
+        }else if(maxent_tool == "maxnet"){
+          pres4test$tovalidate <- 1
+          varbles2test <- raster::rasterize(pres4test, varbles2[[1]], pres4test$tovalidate)
+          varbles2predict <- as.data.frame(matrix(nrow = length(varbles2[[1]]@data@values), ncol = dim(varbles2)[3]))
+          names(varbles2predict) <- colnames(data_train)
+          for(i in 1:dim(varbles2)[3]){
+            varbles2predict[, i] <- varbles2[[i]]@data@values
+          }
+          varbles2predict$tovalidate <- varbles2test@data@values
+          varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
+          varbles2predict <- varbles2predict[complete.cases(varbles2predict), ]
+          varbles2predict$preds_maxnet <- maxnet:::predict.maxnet(modl, varbles2predict[, - length(varbles2predict)], clamp = TRUE, type = c("logistic"))
+        }
 
         #make evaluations (on the same extent with 30% to test)
-        bg <- dismo::randomPoints(varbles, num_bckgr) # background points
-        evs <- dismo::evaluate(modl, p=pres4test, a=bg, x=varbles)
+        #bg <- dismo::randomPoints(varbles2, num_bckgr, pres4model) # background points
+        evs <- dismo::evaluate(modl, p = pres4test, a = bckgr_pts, x = varbles2)
+        #evs_maxnet <- dismo::evaluate(modl, p = pres4test, a = bckgr_pts, x = varbles2)
         save(evs, file = paste0(path, "/evaluations.RData"))
+        #rm(varbles2)
+        #gc()
 
         #Computing Boyce Index (on the same extent with 30% to test)
-        byce <- ecospat::ecospat.boyce(fit = preds, obs = pres4test@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
-        byce$Spearman.cor
+        if(maxent_tool == "dismo"){
+          byce <- ecospat::ecospat.boyce(fit = preds, obs = pres4test@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
+          byce$Spearman.cor
+        }else if(maxent_tool == "maxnet"){
+          byce <- ecospat::ecospat.boyce(fit = varbles2predict$preds_maxnet, obs = varbles2predict[varbles2predict$tovalidate == 1, ]$preds_maxnet, nclass=0, window.w="default", res=100, PEplot = TRUE)
+          byce$Spearman.cor
+        }
+
         save(byce, file = paste0(path, "/boyce.RData"))
 
         # In the last buffer it would make no sense repeating predictions/evaluations on the same extent
@@ -193,33 +258,63 @@ minba <- function(occ = NULL, varbles = NULL,
         # To return to the version where they are not calculated, check commit e6e0040 of 25/08/2018
 
         ## making predictions on the whole species extent
-        preds1 <- dismo::predict(modl, varbles1, filename=paste0(path, "/predictions_tot"), progress = '', overwrite = TRUE)
+        if(maxent_tool == "dismo"){
+          preds1 <- dismo::predict(modl, varbles1, args = 'outputformat=logistic',
+                                   filename = paste0(path, "/predictions_tot"), progress = '',
+                                   overwrite = TRUE)
+        }else if(maxent_tool == "maxnet"){
+          pres4test_tot$tovalidate <- 1
+          varbles1 <- varbles1
+          varbles2test <- raster::rasterize(pres4test_tot, varbles1[[1]], pres4test_tot$tovalidate)
+          varbles2predict <- as.data.frame(matrix(nrow = length(varbles1[[1]]@data@values), ncol = dim(varbles1)[3]))
+          names(varbles2predict) <- colnames(data_train)
+          for(i in 1:dim(varbles1)[3]){
+            varbles2predict[, i] <- varbles1[[i]]@data@values
+          }
+          varbles2predict$tovalidate <- varbles2test@data@values
+          varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
+          varbles2predict <- varbles2predict[complete.cases(varbles2predict), ]
+          varbles2predict$preds_maxnet <- maxnet:::predict.maxnet(modl, varbles2predict[, - length(varbles2predict)], clamp = TRUE, type = c("logistic"))
+        }
 
         #make evaluations
-        bg1 <- dismo::randomPoints(varbles1, num_bckgr1) # background points
-        evs1 <- dismo::evaluate(modl, p=pres4test_tot, a=bg1, x=varbles1)
+        #bg1 <- dismo::randomPoints(varbles1, num_bckgr1, pres) # background points
+        evs1 <- dismo::evaluate(modl, p = pres4test_tot, a = bckgr_pts1, x = varbles1)
+        #evs_maxnet1 <- dismo::evaluate(modl, p = pres4test_tot, a = bckgr_pts1, x = varbles1)
+
         save(evs1, file = paste0(path, "/evaluations_tot.RData"))
 
         #Computing Boyce Index
-        byce1 <- ecospat::ecospat.boyce(fit = preds1, obs = pres4test_tot@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
-        byce1$Spearman.cor
+        if(maxent_tool == "dismo"){
+          byce1 <- ecospat::ecospat.boyce(fit = preds1, obs = pres4test_tot@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
+          byce1$Spearman.cor
+        }else if(maxent_tool == "maxnet"){
+          byce1 <- ecospat::ecospat.boyce(fit = varbles2predict$preds_maxnet, obs = varbles2predict[varbles2predict$tovalidate == 1, ]$preds_maxnet, nclass=0, window.w="default", res=100, PEplot = TRUE)
+          byce1$Spearman.cor
+        }
+
         save(byce1, file = paste0(path, "/boyce_tot.RData"))
 
         # gathering info to be exported
         t2 <- Sys.time() - t1
         if(attr(t2, "units") == "hours") {t2 <- t2*60; attr(t2, "units") <- "mins"}
         if(attr(t2, "units") == "secs") {t2 <- t2/60; attr(t2, "units") <- "mins"}
-        dt2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), bndwidth[bdw], nrow(modl@presence), evs@np, num_bckgr, evs@auc, byce$Spearman.cor, evs1@np, num_bckgr1, evs1@auc, byce1$Spearman.cor), 1, 12, byrow = TRUE))
+        if(maxent_tool == "dismo"){
+          num_pres_calib_used <- nrow(modl@presence)
+        }else if(maxent_tool == "maxnet"){
+          num_pres_calib_used <- nrow(data_train)
+        }
+        dt2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), bndwidth[bdw], num_pres_calib_used, evs@np, num_bckgr, evs@auc, byce$Spearman.cor, evs1@np, num_bckgr1, evs1@auc, byce1$Spearman.cor), 1, 12, byrow = TRUE))
         dt2exp <- rbind(dt2exp, dt2exp_2)
-        selfinfo2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), nrow(pres4cali), nrow(modl@presence), nrow(pres4test), evs@np, num_bckgr, evs@na, t2), 1, 9, byrow = TRUE))
+        selfinfo2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), nrow(pres4cali), num_pres_calib_used, nrow(pres4test), evs@np, num_bckgr, evs@na, t2), 1, 9, byrow = TRUE))
         selfinfo2exp <- rbind(selfinfo2exp, selfinfo2exp_2)
 
         if (x == n_rep){ break }else{ x <- x +1 }
       } #end of repeat n times
 
-      if(is.null(modl)){ print("jumping to next buffer"); next }
+      if(is.null(modl)){ message("\r", "jumping to next buffer"); next }
 
-      cat("\n","computing average for",specs_long,"- buffer #",bdw,"\n")
+      message("computing average for ", specs_long, " - buffer #", bdw, "\n")
       dt2exp[,-c(1:6)] <- data.frame(lapply(dt2exp[-c(1:6)], function(x) as.numeric(as.character(x))))
       dt2exp_m <- mean(dt2exp[(nrow(dt2exp)-n_rep+1):nrow(dt2exp), (ncol(dt2exp)-4)], na.rm = TRUE) #mean Boyce partial area
       dt2exp_m2 <- mean(dt2exp[(nrow(dt2exp)-n_rep+1):nrow(dt2exp), ncol(dt2exp)], na.rm = TRUE) #mean Boyce whole area
@@ -236,15 +331,15 @@ minba <- function(occ = NULL, varbles = NULL,
       dt2exp_mean <- rbind(dt2exp_mean, dt2exp_mean_2)
       dt2exp_mean[, c(2:7)] <- data.frame(lapply(dt2exp_mean[c(2:7)], function(x) as.numeric(as.character(x))))
 
-      rm(modl, preds, preds1, bg, evs, byce); gc()
+      rm(modl, evs, byce); gc()
 
       #Conditions to stop the process
       if(!is.null(BI_part) | !is.null(BI_tot) | !is.null(SD_BI_part) | !is.null(SD_BI_tot)){
         brk <- 0
-        if (!is.null(BI_part) && BI_part <= dt2exp_m){ print("minimum BI_part has been reached"); brk <- 1}
-        if (!is.null(BI_tot) && BI_tot <= dt2exp_m2){ print("minimum BI_tot has been reached"); brk <- 1}
-        if (!is.null(SD_BI_part) && !is.na(dt2exp_sd1) && SD_BI_part >= dt2exp_sd1){ print("minimum SD_BI_part has been reached"); brk <- 1}
-        if (!is.null(SD_BI_tot) && !is.na(dt2exp_sd2) && SD_BI_tot >= dt2exp_sd2){ print("minimum SD_BI_tot has been reached"); brk <- 1}
+        if (!is.null(BI_part) && BI_part <= dt2exp_m){ message("\r", "minimum BI_part has been reached"); brk <- 1}
+        if (!is.null(BI_tot) && BI_tot <= dt2exp_m2){ message("\r", "minimum BI_tot has been reached"); brk <- 1}
+        if (!is.null(SD_BI_part) && !is.na(dt2exp_sd1) && SD_BI_part >= dt2exp_sd1){ message("\r", "minimum SD_BI_part has been reached"); brk <- 1}
+        if (!is.null(SD_BI_tot) && !is.na(dt2exp_sd2) && SD_BI_tot >= dt2exp_sd2){ message("\r", "minimum SD_BI_tot has been reached"); brk <- 1}
         if (brk == 1)  break
       }
 
@@ -279,7 +374,7 @@ minba <- function(occ = NULL, varbles = NULL,
     write.csv(selfinfo2exp, paste0(dir2save, "/results_", sps, "/selfinfo_mod_", sps, ".csv"), row.names = FALSE)
 
     #### Making a plot ####
-    graphics.off()
+    #graphics.off()
     dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")] <- round(dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")], 3)
     pdf(paste0(dir2save, "/results_", sps, "/boyce_buffer_", sps, "_part_tot.pdf"))
     if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }

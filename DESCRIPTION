@@ -1,13 +1,13 @@
 Type: Package
 Package: MinBAR
 Title: Determining the Minimal Background Area for Species Distribution Models
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: c(
     person("Xavier", "Rotllan-Puig", email = "xavier.rotllan.puig@aster-projects.cat", role = c("aut", "cre")),
     person("Anna", "Traveset", email = "atraveset@imedea.uib-csic.es", role = c("aut")))
-Description: This package aims at (1) defining what is the minimum background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it.
+Description: A versatile tool that aims at (1) defining what is the minimum background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019) <doi:10.1101/571182>.
 Depends: R (>= 3.4.0)
-Imports: raster, rgdal, rJava, sp, dismo (>= 1.1-4), ecospat (>= 2.2.0), geosphere (>= 1.5-5), lattice, latticeExtra
+Imports: raster, rgdal, rJava, sp, maxnet, dismo (>= 1.1-4), ecospat (>= 2.2.0), geosphere (>= 1.5-5), lattice, latticeExtra
 Suggests: knitr, rmarkdown
 License: GPL-3
 Encoding: UTF-8
