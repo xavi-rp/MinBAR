@@ -6,13 +6,14 @@
 \title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
 minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
-  num_bands = 10, n_rep = 3, BI_part = NULL, BI_tot = NULL,
-  SD_BI_part = NULL, SD_BI_tot = NULL)
+  num_bands = 10, n_rep = 3, maxent_tool = "maxnet",
+  BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
+  SD_BI_tot = NULL)
 }
 \arguments{
 \item{occ}{Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)}
 
-\item{varbles}{An raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .hdr Labelled .bil}
+\item{varbles}{A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil}
 
 \item{wd}{A directory to save the results}
 
@@ -21,6 +22,8 @@ minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
 \item{num_bands}{Number of buffers}
 
 \item{n_rep}{Number of replicates}
+
+\item{maxent_tool}{Either "dismo" or "maxnet"}
 
 \item{BI_part}{Maximum Boyce Index Partial to stop the process if reached}
 
@@ -41,13 +44,9 @@ Please check the article 'Determining the Minimal Background Area for Species Di
 }
 \examples{
 
-# Saving maxent.jar
-if(!file.exists(paste0(tempdir(), "/dismo/java/maxent.jar"))){
-dir.create(paste0(tempdir(), "/dismo/"))
-dir.create(paste0(tempdir(), "/dismo/java"))
-file.copy(system.file("maxent.jar", package="MinBAR"), paste0(tempdir(), "/dismo/java/maxent.jar"))
-}
-MinBAR:::minba(occ = sprecords, varbles = bioscrop, wd = tempdir(), prj = 4326, num_bands = 3)
+MinBAR:::minba(occ = sprecords, varbles = bioscrop,
+wd = tempdir(), prj = 4326, num_bands = 3,
+maxent_tool = "maxnet")
 
 
 }

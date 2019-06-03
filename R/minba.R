@@ -9,6 +9,7 @@
 #' @title Determining the Minimal Background Area for Species Distribution Models
 #' @description A versatile tool that aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019)
 #' @details Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
+#' @import "dismo" "maxnet"
 #' @importFrom grDevices dev.off graphics.off pdf
 #' @importFrom graphics plot
 #' @importFrom stats quantile sd
@@ -19,6 +20,7 @@
 #' @param prj Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
 #' @param num_bands Number of buffers
 #' @param n_rep Number of replicates
+#' @param maxent_tool Either "dismo" or "maxnet"
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
 #' @param BI_tot Maximum Boyce Index Total to stop the process if reached
 #' @param SD_BI_part Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)
@@ -28,7 +30,9 @@
 #' @references Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
 #' @examples
 #'
-#' MinBAR:::minba(occ = sprecords, varbles = bioscrop, wd = tempdir(), prj = 4326, num_bands = 3)
+#' MinBAR:::minba(occ = sprecords, varbles = bioscrop,
+#' wd = tempdir(), prj = 4326, num_bands = 3,
+#' maxent_tool = "maxnet")
 #'
 #'
 # Created on: Summer 2018 - Winter 2019
@@ -96,8 +100,6 @@ minba <- function(occ = NULL, varbles = NULL,
     #names(pop_cent) <- c("x", "y")
 
     geocntr <- as.data.frame(geosphere::geomean(pres))  #mean location for spherical (longitude/latitude) coordinates that deals with the angularity
-    #geocntr1 <- geocntr
-    #coordinates(geocntr1) <- c("x", "y")
 
     pres$dist2centr <- geosphere::distGeo(pres, geocntr) #in meters
     pres$dist2centr <- pres$dist2centr/1000   #in km
@@ -144,7 +146,7 @@ minba <- function(occ = NULL, varbles = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles2 <<- raster::stack(raster::crop(vrbles, ext))
+      varbles2 <- raster::stack(raster::crop(vrbles, ext))
 
       # number of background points (see Guevara et al, 2017)
       num_bckgr <- (varbles2@ncols * varbles2@nrows) * 50/100
@@ -182,17 +184,15 @@ minba <- function(occ = NULL, varbles = NULL,
         dir_func <- function(varbles2, pres4cali, num_bckgr, bckgr_pts, path){ # to avoid stop modelling if low number of background points or other errors
           res <- tryCatch(
             {
-              data_train <- extract(varbles2, pres4cali)
+              data_train <- raster::extract(varbles2, pres4cali)
               if(maxent_tool == "dismo"){
                 #modl_dismo <- dismo::maxent(varbles2, pres4cali, nbg = num_bckgr)
                 modl <- dismo::maxent(varbles2, pres4cali, a = bckgr_pts)
               }else if(maxent_tool == "maxnet"){
-                #pres4cali_vect <- raster:::rasterize(pres4cali, varbles2[[1]], field = 1, background = 0)
-                #pres4cali_vect <- pres4cali_vect@data@values
-                bckgr_train <- extract(varbles2, bckgr_pts)
+                bckgr_train <- raster::extract(varbles2, bckgr_pts)
                 pres_abs <- c(rep(1, nrow(data_train)), rep(0, nrow(bckgr_train)))
                 data_model <- data.frame(cbind(pres_abs, rbind(data_train, bckgr_train)))
-                data_model <- data_model[complete.cases(data_model), ]
+                data_model <- data_model[stats::complete.cases(data_model), ]
                 modl <- maxnet::maxnet(data_model[, 1], data_model[, - 1],
                                        f = maxnet::maxnet.formula(p = data_model[, 1],
                                                                   data = data_model[, - 1],
@@ -206,11 +206,12 @@ minba <- function(occ = NULL, varbles = NULL,
               return(NULL)
             }
           )
-          if(exists("modl")){ return(list(modl, data_train)) }else{ return(NULL) }
+          if(exists("modl")){ return(list(modl, data_train, varbles2)) }else{ return(NULL) }
         } #end of dir_func
 
         modl <- dir_func(varbles2, pres4cali, num_bckgr, bckgr_pts, path)
         data_train <- modl[[2]]
+        varbles2 <- modl[[3]]
         modl <- modl[[1]]
         if(is.null(modl)){ break }
 
@@ -229,14 +230,15 @@ minba <- function(occ = NULL, varbles = NULL,
           }
           varbles2predict$tovalidate <- varbles2test@data@values
           varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
-          varbles2predict <- varbles2predict[complete.cases(varbles2predict), ]
-          varbles2predict$preds_maxnet <- maxnet:::predict.maxnet(modl, varbles2predict[, - length(varbles2predict)], clamp = TRUE, type = c("logistic"))
+          varbles2predict <- varbles2predict[stats::complete.cases(varbles2predict), ]
+          varbles2predict$preds_maxnet <- predict(modl,
+                                                  varbles2predict[, - length(varbles2predict)],
+                                                  clamp = TRUE,
+                                                  type = c("logistic"))
         }
 
         #make evaluations (on the same extent with 30% to test)
-        #bg <- dismo::randomPoints(varbles2, num_bckgr, pres4model) # background points
         evs <- dismo::evaluate(modl, p = pres4test, a = bckgr_pts, x = varbles2)
-        #evs_maxnet <- dismo::evaluate(modl, p = pres4test, a = bckgr_pts, x = varbles2)
         save(evs, file = paste0(path, "/evaluations.RData"))
         #rm(varbles2)
         #gc()
@@ -273,15 +275,15 @@ minba <- function(occ = NULL, varbles = NULL,
           }
           varbles2predict$tovalidate <- varbles2test@data@values
           varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
-          varbles2predict <- varbles2predict[complete.cases(varbles2predict), ]
-          varbles2predict$preds_maxnet <- maxnet:::predict.maxnet(modl, varbles2predict[, - length(varbles2predict)], clamp = TRUE, type = c("logistic"))
+          varbles2predict <- varbles2predict[stats::complete.cases(varbles2predict), ]
+          varbles2predict$preds_maxnet <- predict(modl,
+                                                  varbles2predict[, - length(varbles2predict)],
+                                                  clamp = TRUE,
+                                                  type = c("logistic"))
         }
 
         #make evaluations
-        #bg1 <- dismo::randomPoints(varbles1, num_bckgr1, pres) # background points
         evs1 <- dismo::evaluate(modl, p = pres4test_tot, a = bckgr_pts1, x = varbles1)
-        #evs_maxnet1 <- dismo::evaluate(modl, p = pres4test_tot, a = bckgr_pts1, x = varbles1)
-
         save(evs1, file = paste0(path, "/evaluations_tot.RData"))
 
         #Computing Boyce Index
@@ -292,7 +294,6 @@ minba <- function(occ = NULL, varbles = NULL,
           byce1 <- ecospat::ecospat.boyce(fit = varbles2predict$preds_maxnet, obs = varbles2predict[varbles2predict$tovalidate == 1, ]$preds_maxnet, nclass=0, window.w="default", res=100, PEplot = TRUE)
           byce1$Spearman.cor
         }
-
         save(byce1, file = paste0(path, "/boyce_tot.RData"))
 
         # gathering info to be exported
