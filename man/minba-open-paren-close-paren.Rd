@@ -43,11 +43,11 @@ A versatile tool that aims at (1) defining what is the minimum or optimal backgr
 Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 }
 \examples{
-
+\dontrun{
 MinBAR:::minba(occ = sprecords, varbles = bioscrop,
-wd = tempdir(), prj = 4326, num_bands = 3,
+wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
 maxent_tool = "maxnet")
-
+}
 
 }
 \references{

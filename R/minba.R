@@ -29,11 +29,11 @@
 #' @name minba()
 #' @references Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
 #' @examples
-#'
+#' \dontrun{
 #' MinBAR:::minba(occ = sprecords, varbles = bioscrop,
-#' wd = tempdir(), prj = 4326, num_bands = 3,
+#' wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
 #' maxent_tool = "maxnet")
-#'
+#' }
 #'
 # Created on: Summer 2018 - Winter 2019
 #
