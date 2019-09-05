@@ -120,7 +120,12 @@ minba <- function(occ = NULL, varbles = NULL,
     ext1[1, 2] <- pres@bbox[1, 2] + incr1[1]
     ext1[2, 1] <- pres@bbox[2, 1] - incr1[2]
     ext1[2, 2] <- pres@bbox[2, 2] + incr1[2]
-    varbles1 <<- raster::stack(raster::crop(vrbles, ext1))
+    if(all(abs(c(ext1[1, ], ext1[2, ])) < abs(as.vector(vrbles@extent)))){
+      varbles1 <<- raster::stack(raster::crop(vrbles, ext1))
+    }else{
+      varbles1 <<- vrbles
+    }
+
 
     # number of background points (see Guevara et al, 2017)
     num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100
@@ -146,7 +151,11 @@ minba <- function(occ = NULL, varbles = NULL,
       ext[1, 2] <- pres4model@bbox[1, 2] + incr[1]
       ext[2, 1] <- pres4model@bbox[2, 1] - incr[2]
       ext[2, 2] <- pres4model@bbox[2, 2] + incr[2]
-      varbles2 <- raster::stack(raster::crop(vrbles, ext))
+      if(all(abs(c(ext[1, ], ext[2, ])) < abs(as.vector(vrbles@extent)))){
+        varbles2 <- raster::stack(raster::crop(vrbles, ext))
+      }else{
+        varbles2 <- vrbles
+      }
 
       # number of background points (see Guevara et al, 2017)
       num_bckgr <- (varbles2@ncols * varbles2@nrows) * 50/100
