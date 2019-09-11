@@ -49,6 +49,7 @@ minba <- function(occ = NULL, varbles = NULL,
   if(is.null(wd)) stop("Please, indicate a directory (wd) to save results")
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
+  graphics.off()
 
   #### Retrieving Presence Records ####
   if(is.vector(occ)){
@@ -250,6 +251,7 @@ minba <- function(occ = NULL, varbles = NULL,
         save(evs, file = paste0(path, "/evaluations.RData"))
         #rm(varbles2)
         #gc()
+        graphics.off()
 
         #Computing Boyce Index (on the same extent with 30% to test)
         if(maxent_tool == "dismo"){
