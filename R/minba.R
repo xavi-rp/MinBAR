@@ -20,6 +20,7 @@
 #' @param prj Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
 #' @param num_bands Number of buffers
 #' @param n_rep Number of replicates
+#' @param occ_prop_test Proportion of presences (occurrences) set aside for testing
 #' @param maxent_tool Either "dismo" or "maxnet"
 #' @param BI_part Maximum Boyce Index Partial to stop the process if reached
 #' @param BI_tot Maximum Boyce Index Total to stop the process if reached
@@ -42,6 +43,7 @@ minba <- function(occ = NULL, varbles = NULL,
                   wd = NULL,
                   prj = NULL,
                   num_bands = 10, n_rep = 3,
+                  occ_prop_test = 0.3,
                   maxent_tool = "maxnet",
                   BI_part = NULL, BI_tot = NULL,
                   SD_BI_part = NULL, SD_BI_tot = NULL){
@@ -50,6 +52,8 @@ minba <- function(occ = NULL, varbles = NULL,
   dir2save <- paste0(wd, "/minba_", format(Sys.Date(), format="%Y%m%d"))
   if(!file.exists(dir2save)) dir.create(dir2save)
   graphics.off()
+  if(occ_prop_test <= 0 | occ_prop_test >= 1) stop("Please, specify a proportion of occurences to set aside for testing the models (default: 0.3)")
+
 
   #### Retrieving Presence Records ####
   if(is.vector(occ)){
@@ -165,7 +169,7 @@ minba <- function(occ = NULL, varbles = NULL,
       #}
 
       # sampling presences for calibrating and testing (70-30%) within the buffer
-      folds <- sample(1:nrow(pres4model), nrow(pres4model)*0.7)
+      folds <- sample(1:nrow(pres4model), nrow(pres4model)*(1-occ_prop_test))
       samp <- as.numeric(unlist(folds))
       pres4cali <- pres4model[samp, 1]
       pres4test <- pres4model[-samp, 1]
@@ -177,7 +181,7 @@ minba <- function(occ = NULL, varbles = NULL,
 
       # sampling presences for testing on the whole extent (30% of total presences except those for calibrating)
       pres1 <- pres[-samp, 1]
-      folds1 <- sample(1:nrow(pres1), nrow(pres1)*0.3)
+      folds1 <- sample(1:nrow(pres1), nrow(pres1)*(occ_prop_test))
       samp1 <- as.numeric(unlist(folds1))
       pres4test_tot <- pres1[-samp1, 1]
 
@@ -388,10 +392,11 @@ minba <- function(occ = NULL, varbles = NULL,
     #graphics.off()
     dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")] <- round(dt2exp_mean[,names(dt2exp_mean) %in% c("BoyceIndex_part", "BoyceIndex_tot")], 3)
     pdf(paste0(dir2save, "/results_", sps, "/boyce_buffer_", sps, "_part_tot.pdf"))
-    if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }
+    #if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "smooth") }
+    if(nrow(dt2exp_mean) < 5){ tp <- c("p") }else{ tp <- c("p", "l") }
     plt <- lattice::xyplot(BoyceIndex_part ~ Buffer, dt2exp_mean,
                            type = tp,
-                           span = 0.8,
+                           #span = 0.8,
                            ylim = c(0.45, 1.05),
                            col = "blue",
                            main = bquote(Boyce~Index~(mean~of~.(n_rep)~models)~-~italic(.(specs_long))),
@@ -401,13 +406,13 @@ minba <- function(occ = NULL, varbles = NULL,
                            lines = list(col=c("blue", "green", "magenta")),
                            text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
     plt1 <- lattice::xyplot(ExecutionTime ~ Buffer, dt2exp_mean,
-                            type = c("p", "r"),
+                            type = c("p", "l"),
                             ylab = "Execution Time (min)",
                             col = "magenta")
     dbl_plt <- latticeExtra::doubleYScale(plt, plt1, add.ylab2 = TRUE)
     plt2 <- lattice::xyplot(BoyceIndex_tot ~ Buffer, dt2exp_mean,
                             type = tp,
-                            span = 0.8,
+                            #span = 0.8,
                             col = "green")
     plot(dbl_plt + latticeExtra::as.layer(plt2))
     dev.off()
