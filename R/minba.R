@@ -132,7 +132,7 @@ minba <- function(occ = NULL, varbles = NULL,
     }
 
     # number of background points (see Guevara et al, 2017)
-    num_bckgr1 <- (varbles1@ncols * varbles1@nrows) * 50/100
+    num_bckgr1 <- floor((varbles1@ncols * varbles1@nrows) * 50/100)
     # background points
     bckgr_pts1 <- dismo::randomPoints(varbles1[[1]], num_bckgr1, pres)
 
@@ -162,7 +162,7 @@ minba <- function(occ = NULL, varbles = NULL,
       }
 
       # number of background points (see Guevara et al, 2017)
-      num_bckgr <- (varbles2@ncols * varbles2@nrows) * 50/100
+      num_bckgr <- floor((varbles2@ncols * varbles2@nrows) * 50/100)
       #if(num_bckgr<100) {
       #  pres4model1 <- sample(1:nrow(pres4model), nrow(pres4model)*0.1)
       #  pres4model <- pres4model[pres4model1,]
@@ -236,12 +236,15 @@ minba <- function(occ = NULL, varbles = NULL,
         }else if(maxent_tool == "maxnet"){
           pres4test$tovalidate <- 1
           varbles2test <- raster::rasterize(pres4test, varbles2[[1]], pres4test$tovalidate)
-          varbles2predict <- as.data.frame(matrix(nrow = length(varbles2[[1]]@data@values), ncol = dim(varbles2)[3]))
+          #varbles2predict <- as.data.frame(matrix(nrow = length(varbles2[[1]]@data@values), ncol = dim(varbles2)[3]))
+          varbles2predict <- as.data.frame(matrix(nrow = length(raster::getValues(varbles2[[1]])), ncol = dim(varbles2)[3]))
           names(varbles2predict) <- colnames(data_train)
           for(i in 1:dim(varbles2)[3]){
-            varbles2predict[, i] <- varbles2[[i]]@data@values
+            #varbles2predict[, i] <- varbles2[[i]]@data@values
+            varbles2predict[, i] <- raster::getValues(varbles2[[i]])
           }
-          varbles2predict$tovalidate <- varbles2test@data@values
+          #varbles2predict$tovalidate <- varbles2test@data@values
+          varbles2predict$tovalidate <- raster::getValues(varbles2test)
           varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
           varbles2predict <- varbles2predict[stats::complete.cases(varbles2predict), ]
           varbles2predict$preds_maxnet <- predict(modl,
@@ -282,12 +285,15 @@ minba <- function(occ = NULL, varbles = NULL,
           pres4test_tot$tovalidate <- 1
           varbles1 <- varbles1
           varbles2test <- raster::rasterize(pres4test_tot, varbles1[[1]], pres4test_tot$tovalidate)
-          varbles2predict <- as.data.frame(matrix(nrow = length(varbles1[[1]]@data@values), ncol = dim(varbles1)[3]))
+          #varbles2predict <- as.data.frame(matrix(nrow = length(varbles1[[1]]@data@values), ncol = dim(varbles1)[3]))
+          varbles2predict <- as.data.frame(matrix(nrow = length(raster::getValues(varbles1[[1]])), ncol = dim(varbles1)[3]))
           names(varbles2predict) <- colnames(data_train)
           for(i in 1:dim(varbles1)[3]){
-            varbles2predict[, i] <- varbles1[[i]]@data@values
+            #varbles2predict[, i] <- varbles1[[i]]@data@values
+            varbles2predict[, i] <- raster::getValues(varbles1[[i]])
           }
-          varbles2predict$tovalidate <- varbles2test@data@values
+          #varbles2predict$tovalidate <- varbles2test@data@values
+          varbles2predict$tovalidate <- raster::getValues(varbles2test)
           varbles2predict$tovalidate[is.na(varbles2predict$tovalidate)] <- 0
           varbles2predict <- varbles2predict[stats::complete.cases(varbles2predict), ]
           varbles2predict$preds_maxnet <- predict(modl,

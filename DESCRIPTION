@@ -9,6 +9,7 @@ Description: A versatile tool that aims at (1) defining what is the minimum back
 Depends: R (>= 3.4.0)
 Imports: raster, rgdal, sp, maxnet, dismo (>= 1.1-4), ecospat (>= 2.2.0), geosphere (>= 1.5-5), lattice, latticeExtra
 Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
