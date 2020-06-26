@@ -14,26 +14,27 @@
 #' @importFrom graphics plot
 #' @importFrom stats quantile sd
 #' @importFrom utils read.csv write.csv
-#' @param occ Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)
-#' @param varbles A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil
-#' @param wd A directory to save the results
-#' @param prj Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
-#' @param num_bands Number of buffers
-#' @param n_rep Number of replicates
-#' @param occ_prop_test Proportion of presences (occurrences) set aside for testing
-#' @param maxent_tool Either "dismo" or "maxnet"
-#' @param BI_part Maximum Boyce Index Partial to stop the process if reached
-#' @param BI_tot Maximum Boyce Index Total to stop the process if reached
-#' @param SD_BI_part Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)
-#' @param SD_BI_tot Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)
+#' @param occ Data frame or character. Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)
+#' @param varbles Raster* object. A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil
+#' @param wd Character. A directory to save the results
+#' @param prj Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
+#' @param num_bands Numeric. Number of buffers (default is 10)
+#' @param n_rep Numeric. Number of replicates (default is 3)
+#' @param occ_prop_test Numeric. Proportion of presences (occurrences) set aside for testing (default is 0.3)
+#' @param maxent_tool Character. Either "dismo" or (default) "maxnet"
+#' @param BI_part Numeric. Maximum Boyce Index Partial to stop the process if reached
+#' @param BI_tot Numeric. Maximum Boyce Index Total to stop the process if reached
+#' @param SD_BI_part Numeric. Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)
+#' @param SD_BI_tot Numeric. Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)
 #' @return \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 #' @name minba()
 #' @references Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
+#' @export
 #' @examples
 #' \dontrun{
-#' MinBAR:::minba(occ = sprecords, varbles = bioscrop,
-#' wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
-#' maxent_tool = "maxnet")
+#' minba(occ = sprecords, varbles = bioscrop,
+#'       wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
+#'       maxent_tool = "maxnet")
 #' }
 #'
 # Created on: Summer 2018 - Winter 2019

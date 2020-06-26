@@ -1,6 +1,6 @@
 ---
 title: "MinBAR example for the Balearic Islands"
-author: "Xavier Rotllan-Puig"
+author: "Xavier Rotllan-Puig (xavier.rotllan.puig@aster-projects.cat)"
 date: "24/6/2020"
 output: rmarkdown::html_vignette
 vignette: >
@@ -11,6 +11,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
 ```
 
 # Introduction
@@ -28,7 +29,7 @@ We need species occurrences, which can be downloaded from different public repos
 
 ```{r}
 library(devtools)
-install_github("xavi-rp/PreSPickR")
+#install_github("xavi-rp/PreSPickR")
 library(PreSPickR)
 
 PreSPickR:::bioatles(sp_list = c("Asphodelus aestivus"), out_name = "sp_records_bioatles")
@@ -66,7 +67,7 @@ If all the four arguments are NULL, all buffers are preocessed. If one or the tw
 Now we can run *MinBAR* to fit the models. 
 
 ```{r}
-install_github("xavi-rp/MinBAR")
+#install_github("xavi-rp/MinBAR")
 library(MinBAR)
 
 MinBAR:::minba(occ = "sp_records_bioatles.csv",
@@ -75,7 +76,15 @@ MinBAR:::minba(occ = "sp_records_bioatles.csv",
                prj = 4326,
                num_bands = 10, n_rep = 3,
                maxent_tool = "maxnet")
-
-
 ```
+
+As results of the calculations, we can check both a csv file and a plot. While the former shows the best and second best buffer, both with and without execution time, the latter presents a plot with the evolution of the two Boyce Index with the increase of the buffer diameter in kilometres, as well as the execution time. 
+
+```{r eval = TRUE}
+rnk_best <- read.csv("rankingBestBuffer.csv", header = TRUE)
+knitr::kable(rnk_best)
+```
+&nbsp;
+
+![](boyce_buffer_asp_aes_part_tot.png)
 
