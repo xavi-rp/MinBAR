@@ -6,32 +6,34 @@
 \title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
 minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
-  num_bands = 10, n_rep = 3, maxent_tool = "maxnet",
-  BI_part = NULL, BI_tot = NULL, SD_BI_part = NULL,
-  SD_BI_tot = NULL)
+  num_bands = 10, n_rep = 3, occ_prop_test = 0.3,
+  maxent_tool = "maxnet", BI_part = NULL, BI_tot = NULL,
+  SD_BI_part = NULL, SD_BI_tot = NULL)
 }
 \arguments{
-\item{occ}{Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)}
+\item{occ}{Data frame or character. Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)}
 
-\item{varbles}{A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil}
+\item{varbles}{Raster* object. A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil}
 
-\item{wd}{A directory to save the results}
+\item{wd}{Character. A directory to save the results}
 
-\item{prj}{Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )}
+\item{prj}{Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )}
 
-\item{num_bands}{Number of buffers}
+\item{num_bands}{Numeric. Number of buffers (default is 10)}
 
-\item{n_rep}{Number of replicates}
+\item{n_rep}{Numeric. Number of replicates (default is 3)}
 
-\item{maxent_tool}{Either "dismo" or "maxnet"}
+\item{occ_prop_test}{Numeric. Proportion of presences (occurrences) set aside for testing (default is 0.3)}
 
-\item{BI_part}{Maximum Boyce Index Partial to stop the process if reached}
+\item{maxent_tool}{Character. Either "dismo" or (default) "maxnet"}
 
-\item{BI_tot}{Maximum Boyce Index Total to stop the process if reached}
+\item{BI_part}{Numeric. Maximum Boyce Index Partial to stop the process if reached}
 
-\item{SD_BI_part}{Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)}
+\item{BI_tot}{Numeric. Maximum Boyce Index Total to stop the process if reached}
 
-\item{SD_BI_tot}{Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)}
+\item{SD_BI_part}{Numeric. Minimum SD of the Boyce Index Partial to stop the process if reached (last 3 buffers)}
+
+\item{SD_BI_tot}{Numeric. Minimum SD of the Boyce Index Total to stop the process if reached (last 3 buffers)}
 }
 \value{
 \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
@@ -44,9 +46,9 @@ Please check the article 'Determining the Minimal Background Area for Species Di
 }
 \examples{
 \dontrun{
-MinBAR:::minba(occ = sprecords, varbles = bioscrop,
-wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
-maxent_tool = "maxnet")
+minba(occ = sprecords, varbles = bioscrop,
+      wd = tempdir(), prj = 4326, num_bands = 3, n_rep = 3,
+      maxent_tool = "maxnet")
 }
 
 }

@@ -1,7 +1,7 @@
 Type: Package
 Package: MinBAR
 Title: Determining the Minimal Background Area for Species Distribution Models
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(
     person("Xavier", "Rotllan-Puig", email = "xavier.rotllan.puig@aster-projects.cat", role = c("aut", "cre")),
     person("Anna", "Traveset", email = "atraveset@imedea.uib-csic.es", role = c("aut")))
