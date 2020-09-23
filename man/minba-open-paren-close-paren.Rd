@@ -6,7 +6,7 @@
 \title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
 minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
-  num_bands = 10, n_rep = 3, occ_prop_test = 0.3,
+  num_bands = 10, n_rep = 15, occ_prop_test = 0.3,
   maxent_tool = "maxnet", BI_part = NULL, BI_tot = NULL,
   SD_BI_part = NULL, SD_BI_tot = NULL)
 }
@@ -21,7 +21,7 @@ minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
 
 \item{num_bands}{Numeric. Number of buffers (default is 10)}
 
-\item{n_rep}{Numeric. Number of replicates (default is 3)}
+\item{n_rep}{Numeric. Number of replicates (default is 15)}
 
 \item{occ_prop_test}{Numeric. Proportion of presences (occurrences) set aside for testing (default is 0.3)}
 

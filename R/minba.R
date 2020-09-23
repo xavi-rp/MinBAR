@@ -19,7 +19,7 @@
 #' @param wd Character. A directory to save the results
 #' @param prj Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
 #' @param num_bands Numeric. Number of buffers (default is 10)
-#' @param n_rep Numeric. Number of replicates (default is 3)
+#' @param n_rep Numeric. Number of replicates (default is 15)
 #' @param occ_prop_test Numeric. Proportion of presences (occurrences) set aside for testing (default is 0.3)
 #' @param maxent_tool Character. Either "dismo" or (default) "maxnet"
 #' @param BI_part Numeric. Maximum Boyce Index Partial to stop the process if reached
@@ -43,7 +43,7 @@
 minba <- function(occ = NULL, varbles = NULL,
                   wd = NULL,
                   prj = NULL,
-                  num_bands = 10, n_rep = 3,
+                  num_bands = 10, n_rep = 15,
                   occ_prop_test = 0.3,
                   maxent_tool = "maxnet",
                   BI_part = NULL, BI_tot = NULL,
@@ -303,9 +303,13 @@ minba <- function(occ = NULL, varbles = NULL,
                                                   type = c("logistic"))
         }
 
-        #make evaluations
+        #Make evaluations
         evs1 <- dismo::evaluate(modl, p = pres4test_tot, a = bckgr_pts1, x = varbles1)
         save(evs1, file = paste0(path, "/evaluations_tot.RData"))
+
+        #MESS map
+        reference_points <- raster::extract(varbles2, pres4model)
+        mss <- dismo::mess(x = varbles1, v = reference_points, full = FALSE, filename = paste0(path, "/MESS_map.tif"))
 
         #Computing Boyce Index
         if(maxent_tool == "dismo"){

@@ -18,7 +18,7 @@ knitr::opts_chunk$set(eval = FALSE)
 
 One of the crucial choices when using Species Distribution Models (SDM) based on pseudo-absences approaches is the delineation of the background area to fit the model. Defining its extent, however, remains a challenge and often studies are based on partial SDMs (i.e. models build with only part of the species geographic distribution)
 
-*MinBAR* is an R package that aims at (1) defining the minimum or optimal background extent necessary to fit good partial SDMs and/or (2) determining whether the background area used to fit a partial SDM is reliable enough to extract ecologically relevant conclusions from it. In this vignette we show an example of *MinBAR* usage.
+*MinBAR* is an R package that aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. In this vignette we show an example of *MinBAR* usage.
 
 Please see the "preprinted" paper at https://www.biorxiv.org/content/10.1101/571182v1 for further details on the package *MinBAR* as well as for the references of other packages and works mentioned in this vignette.
 
