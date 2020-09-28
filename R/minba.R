@@ -7,7 +7,7 @@
 #'
 #' @author Xavier Rotllan-Puig & Anna Traveset
 #' @title Determining the Minimal Background Area for Species Distribution Models
-#' @description A versatile tool that aims at (1) defining what is the minimum or optimal background extent necessary to fit good partial species distribution models and/or (2) determining if the background area used to fit a partial species distribution model is reliable enough to extract ecologically relevant conclusions from it. See Rotllan-Puig, X. & Traveset, A. (2019)
+#' @description A versatile tool that aims at aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. See Rotllan-Puig, X. & Traveset, A. (2019)
 #' @details Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
 #' @import "dismo" "maxnet"
 #' @importFrom grDevices dev.off graphics.off pdf
