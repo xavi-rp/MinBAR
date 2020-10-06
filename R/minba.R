@@ -86,7 +86,8 @@ minba <- function(occ = NULL, varbles = NULL,
     vrbles <- varbles
   }
   if (!is.null(prj)) vrbles@crs <- sp::CRS(paste0("+init=EPSG:", prj))
-
+  if (is.na(vrbles@crs)) stop("Please provide variables with a coordinates system or a
+                              coordinate system reference through 'prj'")
 
   #### Modelling per each species ####
   specs <- unique(presences$sp2)
@@ -99,11 +100,14 @@ minba <- function(occ = NULL, varbles = NULL,
     pres <- pres[, c(2, 1, 4)]
     sp::coordinates(pres) <- c("lon", "lat")  # setting spatial coordinates
     if (!is.null(prj)) pres@proj4string <- sp::CRS(paste0("+init=EPSG:", prj))
+    if (is.na(pres@proj4string)) stop("Make sure the coordinates system of occurrences and variabes are the same")
+
 
     #### Calculating the centre of the population, its most distant point and "bands" ####
-    #pop_cent <- c(mean(presences$x, na.rm =TRUE), mean(presences$y, na.rm =TRUE))
-    #pop_cent <- as.data.frame(matrix(pop_cent, ncol = 2))
-    #names(pop_cent) <- c("x", "y")
+    if(!grepl("WGS84", vrbles@crs@projargs)){
+      vrbles <- raster::projectRaster(vrbles, crs = sp::CRS(paste0("+init=EPSG:", 4326)))
+      pres <- sp::spTransform(pres, CRSobj = sp::CRS(paste0("+init=EPSG:", 4326)))
+    }
 
     geocntr <- as.data.frame(geosphere::geomean(pres))  #mean location for spherical (longitude/latitude) coordinates that deals with the angularity
 
@@ -413,9 +417,9 @@ minba <- function(occ = NULL, varbles = NULL,
                            main = bquote(Boyce~Index~(mean~of~.(n_rep)~models)~-~italic(.(specs_long))),
                            ylab = "Boyce Index", xlab = "Buffer (km)",
                            key=list(#space = "right",
-                           x=0.5,y=0.2,
-                           lines = list(col=c("blue", "green", "magenta")),
-                           text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
+                             x=0.5,y=0.2,
+                             lines = list(col=c("blue", "green", "magenta")),
+                             text = list(c("Boyce Index Partial","Boyce Index Total", "Execution Time"))))
     plt1 <- lattice::xyplot(ExecutionTime ~ Buffer, dt2exp_mean,
                             type = c("p", "l"),
                             ylab = "Execution Time (min)",
