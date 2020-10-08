@@ -37,7 +37,7 @@
 #'       maxent_tool = "maxnet")
 #' }
 #'
-# Created on: Summer 2018 - Winter 2019
+# Created on: Summer 2018 - Winter 2019 (Updated: Summer 2020)
 #
 
 minba <- function(occ = NULL, varbles = NULL,
