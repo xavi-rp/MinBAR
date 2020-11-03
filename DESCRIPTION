@@ -5,7 +5,7 @@ Version: 1.1.2
 Authors@R: c(
     person("Xavier", "Rotllan-Puig", email = "xavier.rotllan.puig@aster-projects.cat", role = c("aut", "cre")),
     person("Anna", "Traveset", email = "atraveset@imedea.uib-csic.es", role = c("aut")))
-Description: A versatile tool that aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. See Rotllan-Puig, X. & Traveset, A. (2019) <doi:10.1101/571182>.
+Description: A versatile tool that aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. See Rotllan-Puig, X. & Traveset, A. (2021) <https://doi.org/10.1016/j.ecolmodel.2020.109353>.
 Depends: R (>= 3.5.0)
 Imports: raster, rgdal, sp, maxnet, dismo (>= 1.1-4), ecospat (>= 2.2.0), geosphere (>= 1.5-5), lattice, latticeExtra
 Suggests: knitr, rmarkdown

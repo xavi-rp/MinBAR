@@ -39,7 +39,7 @@ minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
 \code{selfinfo_mod_}, \code{info_mod_} and \code{info_mod_means_} (all followed by the name of the species). The first two tables are merely informative about how the modelling process has been developed and the results of each model. Whereas \code{info_mod_means_} shows the means of the n models run for each buffer
 }
 \description{
-A versatile tool that aims at aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. See Rotllan-Puig, X. & Traveset, A. (2019)
+A versatile tool that aims at aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. See Rotllan-Puig, X. & Traveset, A. (2021)
 }
 \details{
 Please check the article 'Determining the Minimal Background Area for Species Distribution Models: MinBAR Package' for further details on how to use this package, examples, etc.
@@ -53,7 +53,7 @@ minba(occ = sprecords, varbles = bioscrop,
 
 }
 \references{
-Rotllan-Puig, X. & Traveset, A. 2019. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. bioRxiv. 571182. DOI: 10.1101/571182
+Rotllan-Puig, X. & Traveset, A. 2021. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. Ecological Modelling. 439:109353. https://doi.org/10.1016/j.ecolmodel.2020.109353
 }
 \author{
 Xavier Rotllan-Puig & Anna Traveset

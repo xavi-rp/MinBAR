@@ -20,7 +20,7 @@ One of the crucial choices when using Species Distribution Models (SDM) based on
 
 *MinBAR* is an R package that aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands. In this vignette we show an example of *MinBAR* usage.
 
-Please see the "preprinted" paper at https://www.biorxiv.org/content/10.1101/571182v1 for further details on the package *MinBAR* as well as for the references of other packages and works mentioned in this vignette.
+Please see the paper at https://doi.org/10.1016/j.ecolmodel.2020.109353 for further details on the package *MinBAR* as well as for the references of other packages and works mentioned in this vignette.
 
 
 # Preparing data

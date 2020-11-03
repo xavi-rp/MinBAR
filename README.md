@@ -15,4 +15,10 @@ install_github("xavi-rp/MinBAR")
 
 See [this](https://cran.r-project.org/web/packages/MinBAR/vignettes/Example_MinBAR_Balearics.html) vignette for an example of using MinBAR with a plant species from the Balearic Islands.
 
+&nbsp;
 
+
+
+### References
+
+Rotllan-Puig, X. & Traveset, A. 2021. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. Ecological Modelling. 439:109353. https://doi.org/10.1016/j.ecolmodel.2020.109353
