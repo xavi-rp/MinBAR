@@ -17,7 +17,7 @@
 #' @param occ Data frame or character. Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)
 #' @param varbles Raster* object. A raster brick of the independent variables, or a directory where the rasters are. It will use all the rasters in the folder. Supported: .tif and .bil
 #' @param wd Character. A directory to save the results
-#' @param prj Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )
+#' @param prj Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{https://spatialreference.org/} )
 #' @param num_bands Numeric. Number of buffers (default is 10)
 #' @param n_rep Numeric. Number of replicates (default is 15)
 #' @param occ_prop_test Numeric. Proportion of presences (occurrences) set aside for testing (default is 0.3)

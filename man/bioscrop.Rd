@@ -11,7 +11,7 @@
   \item{bio12}{Annual Precipitation}
 }}
 \source{
-\url{http://worldclim.org}
+\url{https://worldclim.org}
 }
 \usage{
 bioscrop

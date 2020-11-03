@@ -17,7 +17,7 @@ minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
 
 \item{wd}{Character. A directory to save the results}
 
-\item{prj}{Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{http://spatialreference.org/} )}
+\item{prj}{Numeric. Coordinates system (e.g. "4326" is WGS84; check \url{https://spatialreference.org/} )}
 
 \item{num_bands}{Numeric. Number of buffers (default is 10)}
 

@@ -1,6 +1,6 @@
 # MinBAR
 
-MinBAR is an R package that aims at (1) defining the minimum background extent necessary to fit SDMs reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands.
+MinBAR is an R package that aims at (1) defining the minimum background extent necessary to fit Species Distribution Models reliable enough to extract ecologically relevant conclusions from them and (2) optimizing the modelling process in terms of computation demands.
 
 The idea is to sequentially fit several concentric SDMs, with different diameter each (i.e. buffers), from the geographical centre of the species distribution to the periphery, until a satisfactory model is reached.
 
@@ -13,7 +13,7 @@ install_github("xavi-rp/MinBAR")
 ```
 &nbsp;
 
-See [this](https://cran.r-project.org/web/packages/MinBAR/vignettes/Example_MinBAR_Balearics.html) vignette for an example of using MinBAR with a plant species from the Balearic Islands.
+See [this](https://cran.r-project.org/package=MinBAR/vignettes/Example_MinBAR_Balearics.html) vignette for an example of using MinBAR with a plant species from the Balearic Islands.
 
 &nbsp;
 
@@ -21,4 +21,4 @@ See [this](https://cran.r-project.org/web/packages/MinBAR/vignettes/Example_MinB
 
 ### References
 
-Rotllan-Puig, X. & Traveset, A. 2021. Determining the Minimal Background Area for Species Distribution Models: MinBAR Package. Ecological Modelling. 439:109353. https://doi.org/10.1016/j.ecolmodel.2020.109353
+Rotllan-Puig, X. & Traveset, A. 2021. *Determining the Minimal Background Area for Species Distribution Models: MinBAR Package*. Ecological Modelling. 439:109353. \doi{10.1016/j.ecolmodel.2020.109353}
