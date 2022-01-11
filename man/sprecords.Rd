@@ -4,12 +4,14 @@
 \name{sprecords}
 \alias{sprecords}
 \title{Presences (occurrences) of Linaria alpina}
-\format{A data frame with 1064 rows and 3 variables.
+\format{
+A data frame with 1064 rows and 3 variables.
 \describe{
   \item{decimalLongitude}{DecimalLongitude, in degrees}
   \item{decimalLatitude}{DecimalLatitude, in degrees}
   \item{species}{Name of the species}
-}}
+}
+}
 \source{
 \url{https://www.gbif.org/}
 }

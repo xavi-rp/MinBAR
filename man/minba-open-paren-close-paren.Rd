@@ -5,10 +5,20 @@
 \alias{minba}
 \title{Determining the Minimal Background Area for Species Distribution Models}
 \usage{
-minba(occ = NULL, varbles = NULL, wd = NULL, prj = NULL,
-  num_bands = 10, n_rep = 15, occ_prop_test = 0.3,
-  maxent_tool = "maxnet", BI_part = NULL, BI_tot = NULL,
-  SD_BI_part = NULL, SD_BI_tot = NULL)
+minba(
+  occ = NULL,
+  varbles = NULL,
+  wd = NULL,
+  prj = NULL,
+  num_bands = 10,
+  n_rep = 15,
+  occ_prop_test = 0.3,
+  maxent_tool = "maxnet",
+  BI_part = NULL,
+  BI_tot = NULL,
+  SD_BI_part = NULL,
+  SD_BI_tot = NULL
+)
 }
 \arguments{
 \item{occ}{Data frame or character. Data set with presences (occurrences). A data frame with 3 columns: long, lat and species name (in this order)}

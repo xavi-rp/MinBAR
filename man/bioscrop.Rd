@@ -4,12 +4,14 @@
 \name{bioscrop}
 \alias{bioscrop}
 \title{Climate variables}
-\format{A raster brick with 3 variables:
+\format{
+A raster brick with 3 variables:
 \describe{
   \item{bio1}{Annual Mean Temperature}
   \item{bio7}{Temperature Annual Range}
   \item{bio12}{Annual Precipitation}
-}}
+}
+}
 \source{
 \url{https://worldclim.org}
 }

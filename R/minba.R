@@ -268,10 +268,10 @@ minba <- function(occ = NULL, varbles = NULL,
         #Computing Boyce Index (on the same extent with 30% to test)
         if(maxent_tool == "dismo"){
           byce <- ecospat::ecospat.boyce(fit = preds, obs = pres4test@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
-          byce$Spearman.cor
+          byce$cor
         }else if(maxent_tool == "maxnet"){
           byce <- ecospat::ecospat.boyce(fit = varbles2predict$preds_maxnet, obs = varbles2predict[varbles2predict$tovalidate == 1, ]$preds_maxnet, nclass=0, window.w="default", res=100, PEplot = TRUE)
-          byce$Spearman.cor
+          byce$cor
         }
 
         save(byce, file = paste0(path, "/boyce.RData"))
@@ -318,10 +318,10 @@ minba <- function(occ = NULL, varbles = NULL,
         #Computing Boyce Index
         if(maxent_tool == "dismo"){
           byce1 <- ecospat::ecospat.boyce(fit = preds1, obs = pres4test_tot@coords, nclass=0, window.w="default", res=100, PEplot = TRUE)
-          byce1$Spearman.cor
+          byce1$cor
         }else if(maxent_tool == "maxnet"){
           byce1 <- ecospat::ecospat.boyce(fit = varbles2predict$preds_maxnet, obs = varbles2predict[varbles2predict$tovalidate == 1, ]$preds_maxnet, nclass=0, window.w="default", res=100, PEplot = TRUE)
-          byce1$Spearman.cor
+          byce1$cor
         }
         save(byce1, file = paste0(path, "/boyce_tot.RData"))
 
@@ -334,7 +334,7 @@ minba <- function(occ = NULL, varbles = NULL,
         }else if(maxent_tool == "maxnet"){
           num_pres_calib_used <- nrow(data_train)
         }
-        dt2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), bndwidth[bdw], num_pres_calib_used, evs@np, num_bckgr, evs@auc, byce$Spearman.cor, evs1@np, num_bckgr1, evs1@auc, byce1$Spearman.cor), 1, 12, byrow = TRUE))
+        dt2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), bndwidth[bdw], num_pres_calib_used, evs@np, num_bckgr, evs@auc, byce$cor, evs1@np, num_bckgr1, evs1@auc, byce1$cor), 1, 12, byrow = TRUE))
         dt2exp <- rbind(dt2exp, dt2exp_2)
         selfinfo2exp_2 <- as.data.frame(matrix(c(specs_long, paste(bdw, x, sep="_"), nrow(pres4cali), num_pres_calib_used, nrow(pres4test), evs@np, num_bckgr, evs@na, t2), 1, 9, byrow = TRUE))
         selfinfo2exp <- rbind(selfinfo2exp, selfinfo2exp_2)

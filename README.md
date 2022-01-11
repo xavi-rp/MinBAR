@@ -4,7 +4,7 @@ MinBAR is an R package that aims at (1) defining the minimum background extent n
 
 The idea is to sequentially fit several concentric SDMs, with different diameter each (i.e. buffers), from the geographical centre of the species distribution to the periphery, until a satisfactory model is reached.
 
-The main function of MinBAR is *minba()*. In the version 1.1.2 of the package, *minba()* is implemented for MaxEnt models and uses the Boyce Index as a measure of model performance. This might be extended to other algorithms and modelling techniques, as well as to other evaluation metrics.
+The main function of MinBAR is *minba()*. In the version 1.1.3 of the package, *minba()* is implemented for MaxEnt models and uses the Boyce Index as a measure of model performance. This might be extended to other algorithms and modelling techniques, as well as to other evaluation metrics.
 
 To install the latest version:
 ```
